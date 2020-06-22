@@ -8,11 +8,11 @@ const compiler = require('./compiler')
 
 // handle CLI arguments
 const optionDefinitions = [
-  { name: 'output', alias: 'o', type: String },
+  { name: 'destination', alias: 'd', type: String },
   { name: 'help', alias: 'h', type: Boolean },
   {
-    name: 'directory',
-    alias: 'd',
+    name: 'source',
+    alias: 's',
     type: String,
     defaultOption: true
   }
@@ -20,25 +20,47 @@ const optionDefinitions = [
 try {
   const options = commandLineArgs(optionDefinitions)
 
-  // Help
   if (options.help === true) {
+    // Help
     help.show()
   } else {
-    const sourceDirectory =
-      options.directory === undefined ? '.' : options.directory
+    // Process source directory
+    const sourceDirectory = options.source === undefined ? '.' : options.source
+    const outputDirectory =
+      options.destination === undefined ? 'build' : options.destination
+
+    // Create output directory if it doesn't exist
+    try {
+      fs.accessSync(outputDirectory)
+    } catch (err) {
+      fs.mkdirSync(outputDirectory)
+    }
 
     fs.readdir(sourceDirectory, {}, (error, files) => {
       if (error === null) {
         files.forEach(fileName => {
           if (path.extname(fileName) === '.od') {
-            compiler.compile(path.join(sourceDirectory, fileName))
+            compiler.compile(path.join(sourceDirectory, fileName), output => {
+              fs.writeFile(
+                path.join(outputDirectory, fileName + '.html'),
+                output,
+                'utf8',
+                err => {
+                  if (err) {
+                    console.error(
+                      "Error: Can't write to destination directory."
+                    )
+                  }
+                }
+              )
+            })
           }
         })
       } else {
-        console.log("Error: Can't read source directory.")
+        console.error("Error: Can't read source directory.")
       }
     })
   }
 } catch (e) {
-  console.log(e)
+  console.error(e)
 }
