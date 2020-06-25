@@ -17,3 +17,5 @@ out
 *.code-workspace
 onwebed-cli-site
 build
+repl
+package
