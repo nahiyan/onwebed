@@ -19,3 +19,4 @@ onwebed-cli-site
 build
 repl
 package
+*.swp

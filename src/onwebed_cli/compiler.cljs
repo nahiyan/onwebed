@@ -1,8 +1,9 @@
 (ns onwebed-cli.compiler
   (:require [cljs.nodejs :as nodejs]
             [path :refer [extname join]]
-            [xml-js :refer [xml2js]]
+            [xml-js :refer [xml2js js2xml]]
             [helpers :as h]
+            [clojure.string :refer [trim]]
             [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
 (nodejs/enable-util-print!)
@@ -109,9 +110,29 @@
                              :classes ""
                              :id ""})
 
+(defn startOfAttributes?
+  [character]
+  (= character \[))
+
+(defn startOfClasses?
+  [character]
+  (= character \.))
+
+(defn startOfId?
+  [character]
+  (= character \#))
+
+(defn startOfBoneName?
+  [character]
+  (= character \@))
+
+(defn endOfDescriptorElement?
+  [character]
+  (or (= character \space) (= character \tab) (= character \newline)))
+
 (defn parseDescriptor
   ([descriptor]
-   (parseDescriptor descriptor "element_name" (list blankDescriptorElement)))
+   (parseDescriptor descriptor "element_name" (vector blankDescriptorElement)))
   ([descriptor mode elements]
    (let
     [firstCharacter (first descriptor)
@@ -119,15 +140,15 @@
      currentElement (peek elements)]
      (if (not= firstCharacter nil)
        (if (= mode "element_name")
-         (if (= firstCharacter \[)
+         (if (startOfAttributes? firstCharacter)
            (parseDescriptor restOfCharacters "attributes" elements)
-           (if (= firstCharacter \.)
+           (if (startOfClasses? firstCharacter)
              (parseDescriptor restOfCharacters "classes" elements)
              (if (= firstCharacter \#)
                (parseDescriptor restOfCharacters "id" elements)
                (if (= firstCharacter \@)
                  (parseDescriptor restOfCharacters "bone_name" elements)
-                 (if (or (= firstCharacter \space) (= firstCharacter \tab) (= firstCharacter \newline))
+                 (if (endOfDescriptorElement? firstCharacter)
                 ;;  End current element
                    (let
                     [newElements (conj elements blankDescriptorElement)]
@@ -140,14 +161,19 @@
                      (parseDescriptor restOfCharacters "element_name" newElements)))))))
          (if (= mode "attributes")
            (if (= firstCharacter \])
-          ;;  End attributes mode
+            ;;  End attributes mode
              (parseDescriptor restOfCharacters "element_name" elements)
-          ;;  Construct attributes
-             (let
-              [newAttributes (str (get currentElement :attributes) firstCharacter)
-               newElement (assoc currentElement :attributes newAttributes)
-               newElements (conj (pop elements) newElement)]
-               (parseDescriptor restOfCharacters "attributes" newElements)))
+             (if (endOfDescriptorElement? firstCharacter)
+                ;;  End current element
+               (let
+                [newElements (conj elements blankDescriptorElement)]
+                 (parseDescriptor restOfCharacters "element_name" newElements))
+               ;;  Construct attributes
+               (let
+                [newAttributes (str (get currentElement :attributes) firstCharacter)
+                 newElement (assoc currentElement :attributes newAttributes)
+                 newElements (conj (pop elements) newElement)]
+                 (parseDescriptor restOfCharacters "attributes" newElements))))
            (if (= mode "classes")
              (if (= firstCharacter \[)
                (parseDescriptor restOfCharacters "attributes" elements)
@@ -155,11 +181,20 @@
                  (parseDescriptor restOfCharacters "id" elements)
                  (if (= firstCharacter \@)
                    (parseDescriptor restOfCharacters "bone_name" elements)
-                   (let
-                    [newClasses (str (get currentElement :classes) firstCharacter)
-                     newElement (assoc currentElement :classes newClasses)
-                     newElements (conj (pop elements) newElement)]
-                     (parseDescriptor restOfCharacters "classes" newElements)))))
+                   (if (or (endOfDescriptorElement? firstCharacter))
+                    ;;  End current element
+                     (let
+                      [newElements (conj elements blankDescriptorElement)]
+                       (parseDescriptor restOfCharacters "element_name" newElements))
+                    ;;  Construct classes
+                     (let
+                      [newClasses (str (get currentElement :classes)
+                                       (if (= firstCharacter \.)
+                                         \space
+                                         firstCharacter))
+                       newElement (assoc currentElement :classes newClasses)
+                       newElements (conj (pop elements) newElement)]
+                       (parseDescriptor restOfCharacters "classes" newElements))))))
              (if (= mode "id")
                (if (= firstCharacter \[)
                  (parseDescriptor restOfCharacters "attributes" elements)
@@ -167,11 +202,17 @@
                    (parseDescriptor restOfCharacters "classes" elements)
                    (if (= firstCharacter \@)
                      (parseDescriptor restOfCharacters "bone_name" elements)
-                     (let
-                      [newId (str (get currentElement :id) firstCharacter)
-                       newElement (assoc currentElement :id newId)
-                       newElements (conj (pop elements) newElement)]
-                       (parseDescriptor restOfCharacters "id" newElements)))))
+                     (if (endOfDescriptorElement? firstCharacter)
+                      ;;  End current element
+                       (let
+                        [newElements (conj elements blankDescriptorElement)]
+                         (parseDescriptor restOfCharacters "element_name" newElements))
+                      ;;  Construct ID
+                       (let
+                        [newId (str (get currentElement :id) firstCharacter)
+                         newElement (assoc currentElement :id newId)
+                         newElements (conj (pop elements) newElement)]
+                         (parseDescriptor restOfCharacters "id" newElements))))))
             ;;  Process bone name
                (if (= firstCharacter \[)
                  (parseDescriptor restOfCharacters "attributes" elements)
@@ -179,13 +220,26 @@
                    (parseDescriptor restOfCharacters "classes" elements)
                    (if (= firstCharacter \#)
                      (parseDescriptor restOfCharacters "id" elements)
-                     (let
-                      [newBoneName (str (get currentElement :bone_name) firstCharacter)
-                       newElement (assoc currentElement :bone_name newBoneName)
-                       newElements (conj (pop elements) newElement)]
-                       (parseDescriptor restOfCharacters "bone_name" newElements)))))))))
+                     (if (endOfDescriptorElement? firstCharacter)
+                      ;;  End current element
+                       (let
+                        [newElements (conj elements blankDescriptorElement)]
+                         (parseDescriptor restOfCharacters "element_name" newElements))
+                      ;;  Construct bone name
+                       (let
+                        [newBoneName (str (get currentElement :bone_name) firstCharacter)
+                         newElement (assoc currentElement :bone_name newBoneName)
+                         newElements (conj (pop elements) newElement)]
+                         (parseDescriptor restOfCharacters "bone_name" newElements))))))))))
     ;;  End of processing
        elements))))
+
+(defn processAttributes
+  [attributes]
+  (let
+   [dummyElementXml (str "<dummy " attributes "/>")
+    dummyElementAttributes (get (first (get (js->clj (xml2js dummyElementXml) :keywordize-keys true) :elements)) :attributes)]
+    dummyElementAttributes))
 
 ;; Process bone descriptor elements into XML elements
 (defn processBoneDescriptorElements
@@ -193,23 +247,39 @@
   (let
    [currentDescriptorElement (first descriptorElements)
     restOfDescriptorElements (rest descriptorElements)
-    elementName (get currentDescriptorElement :element_name)
-    boneName (get currentDescriptorElement :bone_name)]
+    elementName (get currentDescriptorElement :element_name)]
     (if (not= currentDescriptorElement nil)
       ;; Not end of descriptor elements
       (let
-       [elements (processBoneDescriptorElements restOfDescriptorElements mappedTargets content)]
-        {:type "element" :name elementName :elements elements})
+       [elements (processBoneDescriptorElements restOfDescriptorElements mappedTargets content)
+        elementsListified (if (map? elements) (list elements) elements)
+        boneName (get currentDescriptorElement :bone_name)
+        targetIndices (get (get mappedTargets :targets) boneName)
+        targetedContent (if (seq targetIndices)
+                          (let
+                           [contentItems (get mappedTargets :contentItems)
+                            targetContent (reduce str
+                                                  ""
+                                                  (map (fn [targetIndex]
+                                                         (trim (nth contentItems targetIndex)))
+                                                       targetIndices))]
+                            [{:type "text" :text targetContent}])
+                          [])
+        newElements (if (not= nil elementsListified)
+                      (if (seq targetedContent)
+                        (concat targetedContent elementsListified)
+                        elementsListified)
+                      targetedContent)
+        classes (get currentDescriptorElement :classes)
+        id (get currentDescriptorElement :id)
+        customAttributes (processAttributes (get currentDescriptorElement :attributes))
+        allAttributes (merge customAttributes
+                             {:id (if (> (count id) 0) id nil)}
+                             {:class (if (> (count classes) 0) classes nil)})]
+        {:type "element" :name elementName :elements newElements :attributes allAttributes})
       (if (empty? restOfDescriptorElements)
-        ;; No items remaining
-        (let
-         [targetIndices (get (get mappedTargets :targets) boneName)]
-          ;; Check if current descriptor element has been targeted
-          (if (and (not= targetIndices nil) (not= (count targetIndices) 0))
-            (let
-             [targetContent (nth (get mappedTargets :contentItems) targetIndices)]
-              {:type "element" :name elementName :elements {:type "text" :text targetContent}})
-            content))
+        ;; No items remaining, and we can show the contents of the box
+        content
         nil))))
 
 (defn processBone
@@ -240,19 +310,14 @@
            (processBone bone mappedTargets))
          bones)))
 
-(defn processElements
+(defn processDocumentRoot
   [elements]
-  (apply str (map (fn
-                    [element]
-                    (let
-                     [name (get element :name)]
-                      (if (= name "document_body")
-                        (let
-                         [elements (get element :elements)
-                          bonesAndFlesh (collectBonesAndFlesh elements)]
-                          (processBonesAndFlesh bonesAndFlesh))
-                        "")))
-                  elements)))
+  (map (fn [element]
+         (let
+          [elements (get element :elements)
+           bonesAndFlesh (collectBonesAndFlesh elements)]
+           (processBonesAndFlesh bonesAndFlesh)))
+       elements))
 
 (defn compile_
   ([source destination]
@@ -269,6 +334,9 @@
   ([documentContent]
    (let
     [parsedContent (js->clj (xml2js documentContent) :keywordize-keys true)
-     rootElements (get parsedContent :elements)]
-     (println (processElements rootElements))
-     (processElements rootElements))))
+     documentBody (filter (fn [element]
+                            (= (get element :name) "document_body")) (get parsedContent :elements))
+     documentBodyContent (if (not= nil documentBody) (get (first documentBody) :elements) '())
+     bonesAndFlesh (collectBonesAndFlesh documentBodyContent)
+     xmlJsObject (clj->js {:elements (processBonesAndFlesh bonesAndFlesh)})]
+     (js2xml xmlJsObject))))
