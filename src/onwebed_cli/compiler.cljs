@@ -72,17 +72,36 @@
                   (map (fn
                          [item]
                          (get item :content))
-                       fleshItems))]
-    (merge (map (fn
-                  [fleshItem contentItemIndex]
-                  (let
-                   [targets (h/split (get fleshItem :for))]
-                    (merge (map (fn
-                                  [target]
-                                  {target contentItemIndex})
-                                targets))))
-                fleshItems
-                (range (count contentItems))))))
+                       fleshItems))
+    targets (reduce (fn
+                      [acc, item]
+                      (merge acc
+                             (reduce conj
+                                     {}
+                                     (map (fn
+                                            [keyValueList]
+                                            (let
+                                             [key (first keyValueList)
+                                              value (last keyValueList)
+                                              existingKey (get acc key)]
+                                              (if (not= existingKey nil)
+                                                ;; If key already exists
+                                                {key (conj existingKey (first value))}
+                                                {key value})))
+                                          item))))
+                    {}
+                    (map (fn
+                           [fleshItem contentItemIndex]
+                           (let
+                            [targets (js->clj (h/split (get fleshItem :for)))]
+                             (reduce conj {} (map (fn
+                                                    [target]
+                                                    {target (list contentItemIndex)})
+                                                  targets))))
+                         fleshItems
+                         (range (count contentItems))))]
+    {:contentItems contentItems
+     :targets targets}))
 
 (def blankDescriptorElement {:element_name ""
                              :bone_name ""
@@ -168,39 +187,58 @@
     ;;  End of processing
        elements))))
 
-(defn compileBone
-  [descriptorElements content mappedTargets]
+;; Process bone descriptor elements into XML elements
+(defn processBoneDescriptorElements
+  [descriptorElements mappedTargets content]
   (let
    [currentDescriptorElement (first descriptorElements)
     restOfDescriptorElements (rest descriptorElements)
     elementName (get currentDescriptorElement :element_name)
-    elements (compileBone restOfDescriptorElements content mappedTargets)]
+    boneName (get currentDescriptorElement :bone_name)]
     (if (not= currentDescriptorElement nil)
-      {:type "element" :name elementName :elements elements}
-      content)))
+      ;; Not end of descriptor elements
+      (let
+       [elements (processBoneDescriptorElements restOfDescriptorElements mappedTargets content)]
+        {:type "element" :name elementName :elements elements})
+      (if (empty? restOfDescriptorElements)
+        ;; No items remaining
+        (let
+         [targetIndices (get (get mappedTargets :targets) boneName)]
+          ;; Check if current descriptor element has been targeted
+          (if (and (not= targetIndices nil) (not= (count targetIndices) 0))
+            (let
+             [targetContent (nth (get mappedTargets :contentItems) targetIndices)]
+              {:type "element" :name elementName :elements {:type "text" :text targetContent}})
+            content))
+        nil))))
 
-(defn compileBones
-  [bones mappedTargets]
-  ;; (map (fn
-  ;;        [bone]
-  ;;        (let
-  ;;         [descriptor (get bone :descriptor)
-  ;;          children (get bone :children)
-  ;;          parsedDescriptor (parseDescriptor descriptor)
-  ;;          content (compileBones children mappedTargets)]
-  ;;          (compileBone parsedDescriptor content mappedTargets)))
-  ;;      bones)
-  ())
+(defn processBone
+  [bone mappedTargets]
+  (let
+   [descriptor (get bone :descriptor)
+    children (get bone :children)
+    descriptorElements (parseDescriptor descriptor)
+    content (map (fn [bone]
+                   (processBone bone mappedTargets))
+                 children)
+    processedDescriptorElements (processBoneDescriptorElements descriptorElements mappedTargets content)]
+    processedDescriptorElements))
 
 (defn processBonesAndFlesh
   [bonesAndFlesh]
   (let
-   [fleshItems (filter (fn [item] (= (get item :type) "flesh")) bonesAndFlesh)
+   [fleshItems (filter (fn
+                         [item]
+                         (= (get item :type) "flesh"))
+                       bonesAndFlesh)
     bones (filter (fn
                     [item]
-                    (= (get item :type) "bone")) bonesAndFlesh)
+                    (= (get item :type) "bone"))
+                  bonesAndFlesh)
     mappedTargets (mapTargets fleshItems)]
-    (compileBones bones mappedTargets)))
+    (map (fn [bone]
+           (processBone bone mappedTargets))
+         bones)))
 
 (defn processElements
   [elements]
@@ -232,4 +270,5 @@
    (let
     [parsedContent (js->clj (xml2js documentContent) :keywordize-keys true)
      rootElements (get parsedContent :elements)]
+     (println (processElements rootElements))
      (processElements rootElements))))
