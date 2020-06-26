@@ -2,8 +2,7 @@
   (:require [cljs.nodejs :as nodejs]
             [path :refer [extname join]]
             [xml-js :refer [xml2js js2xml]]
-            [helpers :as h]
-            [clojure.string :refer [trim]]
+            [clojure.string :refer [trim split]]
             [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
 (nodejs/enable-util-print!)
@@ -94,10 +93,10 @@
                     (map (fn
                            [fleshItem contentItemIndex]
                            (let
-                            [targets (js->clj (h/split (get fleshItem :for)))]
+                            [targets (js->clj (split (get fleshItem :for) #"\s"))]
                              (reduce conj {} (map (fn
                                                     [target]
-                                                    {target (list contentItemIndex)})
+                                                    {target (vector contentItemIndex)})
                                                   targets))))
                          fleshItems
                          (range (count contentItems))))]

@@ -1,6 +1,2 @@
-var helpers = {
-  split: function (str) {
-    return str.split(' ')
-  }
-}
+var helpers = {}
 // module.exports = helpers
