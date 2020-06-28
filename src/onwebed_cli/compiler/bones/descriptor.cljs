@@ -1,142 +1,142 @@
 (ns onwebed-cli.compiler.bones.descriptor
-  (:require [onwebed-cli.compiler.base :refer [processAttributes]]
+  (:require [onwebed-cli.compiler.base :refer [process-atributes]]
             [clojure.string :refer [trim]]))
 
-(def blankDescriptorElement {:element_name ""
-                             :bone_name ""
-                             :attributes ""
-                             :classes ""
-                             :id ""})
+(def blank-element {:element_name ""
+                    :bone_name ""
+                    :attributes ""
+                    :classes ""
+                    :id ""})
 
-(declare parseDescriptor)
+(declare parse)
 
-(defn constructDescriptorElementProperty
-  [elementType firstCharacter restOfCharacters currentElement elements]
+(defn construct-element-property
+  [element-type current-character rest-of-characters current-element elements]
   (let
-   [newElementProperty (str (get currentElement (keyword elementType)) firstCharacter)
-    newElement (assoc currentElement (keyword elementType) newElementProperty)
-    newElements (conj (pop elements) newElement)]
-    (vector restOfCharacters elementType newElements)))
+   [new-element-property (str (get current-element (keyword element-type)) current-character)
+    new-element (assoc current-element (keyword element-type) new-element-property)
+    new-elements (conj (pop elements) new-element)]
+    (vector rest-of-characters element-type new-elements)))
 
-(defn endCurrentDescriptorElement
-  [restOfCharacters elements]
+(defn end-element
+  [rest-of-characters elements]
   (let
-   [newElements (conj elements blankDescriptorElement)]
-    (vector restOfCharacters "element_name" newElements)))
+   [new-elements (conj elements blank-element)]
+    (vector rest-of-characters "element_name" new-elements)))
 
-(defn handleStartOfDescriptorElements
-  [characterType restOfCharacters elements]
-  (case characterType
+(defn handle-start-of-element
+  [character-type rest-of-characters elements]
+  (case character-type
     :start_of_attributes
-    (vector restOfCharacters "attributes" elements)
+    (vector rest-of-characters "attributes" elements)
     :start_of_classes
-    (vector restOfCharacters "classes" elements)
+    (vector rest-of-characters "classes" elements)
     :start_of_id
-    (vector restOfCharacters "id" elements)
+    (vector rest-of-characters "id" elements)
     :start_of_bone_name
-    (vector restOfCharacters "bone_name" elements)
+    (vector rest-of-characters "bone_name" elements)
     :whitespace
-    (endCurrentDescriptorElement restOfCharacters elements)))
+    (end-element rest-of-characters elements)))
 
-(defn parseDescriptorElement
+(defn parse-element
   [characters mode elements]
   (let
-   [firstCharacter (first characters)
-    restOfCharacters (rest characters)
-    currentElement (peek elements)
-    characterType (case firstCharacter
-                    \[ :start_of_attributes
-                    \] :end_of_attributes
-                    \. :start_of_classes
-                    \# :start_of_id
-                    \@ :start_of_bone_name
-                    \space :whitespace
-                    \tab :whitespace
-                    \newline :whitespace
-                    :other)
-    newArguments (case mode
-                   "element_name"
-                   (case characterType
-                     :other
-                     (constructDescriptorElementProperty "element_name" firstCharacter restOfCharacters currentElement elements)
-                     (handleStartOfDescriptorElements characterType restOfCharacters elements))
-                   "attributes"
-                   (case characterType
-                     :end_of_attributes
-                     (vector restOfCharacters "element_name" elements)
-                     (constructDescriptorElementProperty "attributes" firstCharacter restOfCharacters currentElement elements))
-                   "classes"
-                   (case characterType
-                     :other
-                     (constructDescriptorElementProperty "classes" firstCharacter restOfCharacters currentElement elements)
-                     (let
-                      [additionOfSpace (constructDescriptorElementProperty "classes" \space restOfCharacters currentElement elements)
-                       newElements (get additionOfSpace 2)]
-                       (handleStartOfDescriptorElements characterType restOfCharacters newElements)))
-                   "id"
-                   (case characterType
-                     :other
-                     (constructDescriptorElementProperty "id" firstCharacter restOfCharacters currentElement elements)
-                     (handleStartOfDescriptorElements characterType restOfCharacters elements))
+   [current-character (first characters)
+    rest-of-characters (rest characters)
+    current-element (peek elements)
+    character-type (case current-character
+                     \[ :start_of_attributes
+                     \] :end_of_attributes
+                     \. :start_of_classes
+                     \# :start_of_id
+                     \@ :start_of_bone_name
+                     \space :whitespace
+                     \tab :whitespace
+                     \newline :whitespace
+                     :other)
+    new-arguments (case mode
+                    "element_name"
+                    (case character-type
+                      :other
+                      (construct-element-property "element_name" current-character rest-of-characters current-element elements)
+                      (handle-start-of-element character-type rest-of-characters elements))
+                    "attributes"
+                    (case character-type
+                      :end_of_attributes
+                      (vector rest-of-characters "element_name" elements)
+                      (construct-element-property "attributes" current-character rest-of-characters current-element elements))
+                    "classes"
+                    (case character-type
+                      :other
+                      (construct-element-property "classes" current-character rest-of-characters current-element elements)
+                      (let
+                       [additionOfSpace (construct-element-property "classes" \space rest-of-characters current-element elements)
+                        new-elements (get additionOfSpace 2)]
+                        (handle-start-of-element character-type rest-of-characters new-elements)))
+                    "id"
+                    (case character-type
+                      :other
+                      (construct-element-property "id" current-character rest-of-characters current-element elements)
+                      (handle-start-of-element character-type rest-of-characters elements))
                   ;;  bone_name
-                   (case characterType
-                     :other
-                     (constructDescriptorElementProperty "bone_name" firstCharacter restOfCharacters currentElement elements)
-                     (handleStartOfDescriptorElements characterType restOfCharacters elements)))
-    newCharacters (get newArguments 0)
-    newMode (get newArguments 1)
-    newElements (get newArguments 2)]
+                    (case character-type
+                      :other
+                      (construct-element-property "bone_name" current-character rest-of-characters current-element elements)
+                      (handle-start-of-element character-type rest-of-characters elements)))
+    new-characters (get new-arguments 0)
+    new-mode (get new-arguments 1)
+    new-elements (get new-arguments 2)]
 
-    (parseDescriptor newCharacters newMode newElements)))
+    (parse new-characters new-mode new-elements)))
 
 ; Process descriptor to get descriptor elements
-(defn parseDescriptor
+(defn parse
   ([descriptor]
-   (parseDescriptor descriptor "element_name" (vector blankDescriptorElement)))
+   (parse descriptor "element_name" (vector blank-element)))
   ([descriptor mode elements]
    (if (empty? descriptor)
       ;  No character of descriptor left for processing, just return the result
      elements
       ;  Process current character based on processing mode
-     (parseDescriptorElement descriptor mode elements))))
+     (parse-element descriptor mode elements))))
 
 ;; Process bone descriptor elements into a form representing HTML elements
-(defn processBoneDescriptorElements
-  [descriptorElements mappedTargets content]
+(defn process-elements
+  [descriptorElements mapped-targets content]
   (let
-   [currentDescriptorElement (first descriptorElements)
-    restOfDescriptorElements (rest descriptorElements)
-    elementName (get currentDescriptorElement :element_name)]
-    (if (not= currentDescriptorElement nil)
+   [current-element (first descriptorElements)
+    rest-of-elements (rest descriptorElements)
+    element-name (get current-element :element_name)]
+    (if (not= current-element nil)
       ;; Not end of descriptor elements
       (let
-       [elements (processBoneDescriptorElements restOfDescriptorElements mappedTargets content)
-        elementsListified (if (map? elements) (list elements) elements)
-        boneName (get currentDescriptorElement :bone_name)
-        targetIndices (get (get mappedTargets :targets) boneName)
-        targetedContent (if (seq targetIndices)
-                          (let
-                           [contentItems (get mappedTargets :contentItems)
-                            targetContent (reduce str
-                                                  ""
-                                                  (map (fn [targetIndex]
-                                                         (trim (nth contentItems targetIndex)))
-                                                       targetIndices))]
-                            [{:type "text" :text targetContent}])
-                          [])
-        newElements (if (not= nil elementsListified)
-                      (if (seq targetedContent)
-                        (concat targetedContent elementsListified)
-                        elementsListified)
-                      targetedContent)
-        classes (trim (get currentDescriptorElement :classes))
-        id (get currentDescriptorElement :id)
-        customAttributes (processAttributes (get currentDescriptorElement :attributes))
-        allAttributes (merge customAttributes
-                             {:id (if (> (count id) 0) id nil)}
-                             {:class (if (> (count classes) 0) classes nil)})]
-        {:type "element" :name elementName :elements newElements :attributes allAttributes})
-      (if (empty? restOfDescriptorElements)
+       [elements (process-elements rest-of-elements mapped-targets content)
+        elements-listified (if (map? elements) (list elements) elements)
+        bone-name (get current-element :bone_name)
+        target-indices (get (get mapped-targets :targets) bone-name)
+        targeted-content (if (seq target-indices)
+                           (let
+                            [content-items (get mapped-targets :content-items)
+                             target-content (reduce str
+                                                    ""
+                                                    (map (fn [targetIndex]
+                                                           (trim (nth content-items targetIndex)))
+                                                         target-indices))]
+                             [{:type "text" :text target-content}])
+                           [])
+        new-elements (if (not= nil elements-listified)
+                       (if (seq targeted-content)
+                         (concat targeted-content elements-listified)
+                         elements-listified)
+                       targeted-content)
+        classes (trim (get current-element :classes))
+        id (get current-element :id)
+        custom-attributes (process-atributes (get current-element :attributes))
+        all-attributes (merge custom-attributes
+                              {:id (if (> (count id) 0) id nil)}
+                              {:class (if (> (count classes) 0) classes nil)})]
+        {:type "element" :name element-name :elements new-elements :attributes all-attributes})
+      (if (empty? rest-of-elements)
         ;; No items remaining, and we can show the contents of the box
         content
         nil))))

@@ -10,25 +10,25 @@
    ["-h" "--help", "Show this help text."]
    ["-d" "--destination <path>" "Destination directory." :default "build"]])
 
-(defn showVersion [] (println "Onwebed 0.1.0."))
-(defn showHelp [summary] (println summary))
-(defn showError [] (println "Error: Not enough arguments. Run with --help flag to see all arguments."))
+(defn show-version [] (println "Onwebed 0.1.0."))
+(defn show-help [summary] (println summary))
+(defn show-error [] (println "Error: Not enough arguments. Run with --help flag to see all arguments."))
 
 (defn -main [& args]
   (let
-   [processedArguments (parse-opts args cli-options)
-    options (get processedArguments :options)
+   [processed-arguments (parse-opts args cli-options)
+    options (get processed-arguments :options)
     destination (get options :destination)
     version (get options :version)
     help (get options :help)
-    summary (get processedArguments :summary)
-    source (first (get processedArguments :arguments))]
+    summary (get processed-arguments :summary)
+    source (first (get processed-arguments :arguments))]
     (if (not= source nil)
       (compile_ source destination)
       (if (not= help nil)
-        (showHelp summary)
+        (show-help summary)
         (if (not= version nil)
-          (showVersion)
-          (showError))))))
+          (show-version)
+          (show-error))))))
 
 (set! *main-cli-fn* -main)

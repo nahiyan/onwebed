@@ -3,7 +3,7 @@
             [path :refer [extname join]]
             [xml-js :refer [xml2js js2xml]]
             [clojure.string :refer [split]]
-            [onwebed-cli.compiler.bones.descriptor :refer [parseDescriptor processBoneDescriptorElements]]
+            [onwebed-cli.compiler.bones.descriptor :as descriptor]
             [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
 (nodejs/enable-util-print!)
@@ -11,26 +11,26 @@
 (defn document? [item]
   (= ".od" (extname item)))
 
-(defn saveCompiledDocument
+(defn save-compiled-document
   [content document destination]
   (let
    [filePath (join destination (str document ".html"))]
     (writeFileSync filePath content)))
 
-(defn saveCompiledDocuments
+(defn save-compiled-documents
   [contents documents destination]
   (let [content (first contents)
         document (first documents)
         restOfContents (rest contents)
         restOfDocuments (rest documents)]
-    (saveCompiledDocument content document destination)
-    (if (= restOfContents ()) () (saveCompiledDocuments restOfContents restOfDocuments destination))))
+    (save-compiled-document content document destination)
+    (if (= restOfContents ()) () (save-compiled-documents restOfContents restOfDocuments destination))))
 
-(defn getDocumentContent
+(defn get-document-content
   [documentPath]
   (readFileSync documentPath "utf8"))
 
-(defn combineTextElements
+(defn combine-text-elements
   [children]
   (let
    [textElements (filter (fn
@@ -43,7 +43,7 @@
     (apply str texts)))
 
 ; Take XML elements and retrieve bones and flesh in processed form
-(defn collectBonesAndFlesh
+(defn collect-bones-and-flesh
   [elements]
   (filter
    (fn [item] (not= item nil))
@@ -56,26 +56,26 @@
             (if (= name "bone")
               (let
                [children (if (not= elements nil)
-                           (collectBonesAndFlesh elements)
+                           (collect-bones-and-flesh elements)
                            nil)
                 descriptor (get attributes :descriptor)]
                 {:type "bone" :children children :descriptor descriptor})
               (if (= name "flesh")
                 (let
                  [for_ (get attributes :for)
-                  content (combineTextElements elements)]
+                  content (combine-text-elements elements)]
                   {:type "flesh" :for for_ :content content})
                 nil)))) elements)))
 
 ; Generate map of flesh targets and their respective contents
-(defn mapTargets
-  [fleshItems]
+(defn map-targets
+  [flesh-items]
   (let
-   [contentItems (vec
-                  (map (fn
-                         [item]
-                         (get item :content))
-                       fleshItems))
+   [content-items (vec
+                   (map (fn
+                          [item]
+                          (get item :content))
+                        flesh-items))
     targets (reduce (fn
                       [acc, item]
                       (merge acc
@@ -86,28 +86,28 @@
                                             (let
                                              [key (first keyValueList)
                                               value (last keyValueList)
-                                              existingKey (get acc key)]
-                                              (if (not= existingKey nil)
+                                              existing-key (get acc key)]
+                                              (if (not= existing-key nil)
                                                 ;; If key already exists
-                                                {key (conj existingKey (first value))}
+                                                {key (conj existing-key (first value))}
                                                 {key value})))
                                           item))))
                     {}
                     (map (fn
-                           [fleshItem contentItemIndex]
+                           [flesh-item content-item-index]
                            (let
-                            [targets (js->clj (split (get fleshItem :for) #"\s"))]
+                            [targets (js->clj (split (get flesh-item :for) #"\s"))]
                              (reduce conj {} (map (fn
                                                     [target]
-                                                    {target (vector contentItemIndex)})
+                                                    {target (vector content-item-index)})
                                                   targets))))
-                         fleshItems
-                         (range (count contentItems))))]
-    {:contentItems contentItems
+                         flesh-items
+                         (range (count content-items))))]
+    {:content-items content-items
      :targets targets}))
 
 ; Process attributes to a form which can be fed into xml.js-supported objects
-(defn processAttributes
+(defn process-atributes
   [attributes]
   (let
    [dummyElementXml (str "<dummy " attributes "/>")
@@ -115,32 +115,32 @@
     dummyElementAttributes))
 
 ; Take a bone (XML element), and process it to a form representing HTML elements
-(defn processBone
-  [bone mappedTargets]
+(defn process-bone
+  [bone mapped-targets]
   (let
    [descriptor (get bone :descriptor)
     children (get bone :children)
-    descriptorElements (parseDescriptor descriptor)
+    descriptorElements (descriptor/parse descriptor)
     content (map (fn [bone]
-                   (processBone bone mappedTargets))
+                   (process-bone bone mapped-targets))
                  children)
-    processedDescriptorElements (processBoneDescriptorElements descriptorElements mappedTargets content)]
-    processedDescriptorElements))
+    processed-descriptor-elements (descriptor/processElements descriptorElements mapped-targets content)]
+    processed-descriptor-elements))
 
-(defn processBonesAndFlesh
-  [bonesAndFlesh]
+(defn process-bones-and-flesh
+  [bones-and-flesh]
   (let
-   [fleshItems (filter (fn
-                         [item]
-                         (= (get item :type) "flesh"))
-                       bonesAndFlesh)
+   [flesh-items (filter (fn
+                          [item]
+                          (= (get item :type) "flesh"))
+                        bones-and-flesh)
     bones (filter (fn
                     [item]
                     (= (get item :type) "bone"))
-                  bonesAndFlesh)
-    mappedTargets (mapTargets fleshItems)]
+                  bones-and-flesh)
+    mapped-targets (map-targets flesh-items)]
     (map (fn [bone]
-           (processBone bone mappedTargets))
+           (process-bone bone mapped-targets))
          bones)))
 
 (defn compile_
@@ -150,18 +150,18 @@
    (let
     [sourceItems (js->clj (readdirSync source "utf8"))
      documents (filter document? sourceItems)
-     documentPaths (map (fn [document] (join source document)) documents)
-     documentContents (map getDocumentContent documentPaths)
-     compiledDocuments (map compile_ documentContents)]
+     document-paths (map (fn [document] (join source document)) documents)
+     document-contents (map get-document-content document-paths)
+     compiled-documents (map compile_ document-contents)]
     ;;  Compile documents
-     (saveCompiledDocuments compiledDocuments documents destination)))
-  ([documentContent]
+     (save-compiled-documents compiled-documents documents destination)))
+  ([document-content]
    (let
-    [parsedContent (js->clj (xml2js documentContent) :keywordize-keys true)
-     documentBody (filter (fn [element]
-                            (= (get element :name) "document_body")) (get parsedContent :elements))
-     documentBodyContent (if (not= nil documentBody) (get (first documentBody) :elements) '())
-     bonesAndFlesh (collectBonesAndFlesh documentBodyContent)
-     xmlJsObject (clj->js {:elements (processBonesAndFlesh bonesAndFlesh)})]
-     (println (js2xml xmlJsObject))
-     (js2xml xmlJsObject))))
+    [parsed-content (js->clj (xml2js document-content) :keywordize-keys true)
+     document-body (filter (fn [element]
+                             (= (get element :name) "document_body")) (get parsed-content :elements))
+     document-body-content (if (not= nil document-body) (get (first document-body) :elements) '())
+     bones-and-flesh (collect-bones-and-flesh document-body-content)
+     xml-js-object (clj->js {:elements (process-bones-and-flesh bones-and-flesh)})]
+     (println (js2xml xml-js-object))
+     (js2xml xml-js-object))))
