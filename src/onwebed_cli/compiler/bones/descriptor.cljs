@@ -6,17 +6,25 @@
                     :bone_name ""
                     :attributes ""
                     :classes ""
-                    :id ""})
+                    :id ""
+                    :closing-tag true})
 
 (declare parse)
 
 (defn construct-element-property
-  [element-type current-character rest-of-characters current-element elements]
+  [property current-character rest-of-characters current-element elements]
   (let
-   [new-element-property (str (get current-element (keyword element-type)) current-character)
-    new-element (assoc current-element (keyword element-type) new-element-property)
+   [new-element-property (str (get current-element (keyword property)) current-character)
+    new-element (assoc current-element (keyword property) new-element-property)
     new-elements (conj (pop elements) new-element)]
-    (vector rest-of-characters element-type new-elements)))
+    (vector rest-of-characters property new-elements)))
+
+(defn set-element-property
+  [property value rest-of-characters new-mode current-element elements]
+  (let
+   [new-element (assoc current-element (keyword property) value)
+    new-elements (conj (pop elements) new-element)]
+    (vector rest-of-characters new-mode new-elements)))
 
 (defn end-element
   [rest-of-characters elements]
@@ -24,13 +32,32 @@
    [new-elements (conj elements blank-element)]
     (vector rest-of-characters "element_name" new-elements)))
 
+(defn get-character-type
+  [character]
+  (case character
+    \[ :start_of_attributes
+    \] :end_of_attributes
+    \. :start_of_classes
+    \# :start_of_id
+    \@ :start_of_bone_name
+    \space :whitespace
+    \tab :whitespace
+    \newline :whitespace
+    nil :end
+    :other))
+
 (defn handle-start-of-element
   [character-type rest-of-characters elements]
   (case character-type
     :start_of_attributes
     (vector rest-of-characters "attributes" elements)
     :start_of_classes
-    (vector rest-of-characters "classes" elements)
+    (let
+     [character-type (get-character-type (first rest-of-characters))
+      current-element (peek elements)]
+      (if (or (= character-type :whitespace) (= character-type :end))
+        (set-element-property "closing-tag" false rest-of-characters "end" current-element elements)
+        (vector rest-of-characters "classes" elements)))
     :start_of_id
     (vector rest-of-characters "id" elements)
     :start_of_bone_name
@@ -44,16 +71,7 @@
    [current-character (first characters)
     rest-of-characters (rest characters)
     current-element (peek elements)
-    character-type (case current-character
-                     \[ :start_of_attributes
-                     \] :end_of_attributes
-                     \. :start_of_classes
-                     \# :start_of_id
-                     \@ :start_of_bone_name
-                     \space :whitespace
-                     \tab :whitespace
-                     \newline :whitespace
-                     :other)
+    character-type (get-character-type current-character)
     new-arguments (case mode
                     "element_name"
                     (case character-type
@@ -78,6 +96,8 @@
                       :other
                       (construct-element-property "id" current-character rest-of-characters current-element elements)
                       (handle-start-of-element character-type rest-of-characters elements))
+                    "end"
+                    (vector () nil elements)
                   ;;  bone_name
                     (case character-type
                       :other
@@ -113,6 +133,7 @@
        [elements (process-elements rest-of-elements mapped-targets content)
         elements-listified (if (map? elements) (list elements) elements)
         bone-name (get current-element :bone_name)
+        has-closing-tag? (get current-element :closing-tag)
         target-indices (get (get mapped-targets :targets) bone-name)
         targeted-content (if (seq target-indices)
                            (let
@@ -127,7 +148,9 @@
         new-elements (if (not= nil elements-listified)
                        (if (seq targeted-content)
                          (concat targeted-content elements-listified)
-                         elements-listified)
+                         (if (and has-closing-tag? (empty? elements-listified))
+                           (list {})
+                           elements-listified))
                        targeted-content)
         classes (trim (get current-element :classes))
         id (get current-element :id)

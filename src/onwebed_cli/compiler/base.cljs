@@ -2,6 +2,7 @@
   (:require [cljs.nodejs :as nodejs]
             [path :refer [extname join]]
             [xml-js :refer [xml2js js2xml]]
+            [xml-formatter :as xml-format]
             [clojure.string :refer [split]]
             [onwebed-cli.compiler.bones.descriptor :as descriptor]
             [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
@@ -155,5 +156,5 @@
      document-body-content (if (not= nil document-body) (get (first document-body) :elements) '())
      bones-and-flesh (collect-bones-and-flesh document-body-content)
      xml-js-object (clj->js {:elements (process-bones-and-flesh bones-and-flesh)})]
-     (println (js2xml xml-js-object))
-     (js2xml xml-js-object))))
+     (println (xml-format (js2xml xml-js-object)))
+     (xml-format (js2xml xml-js-object)))))
