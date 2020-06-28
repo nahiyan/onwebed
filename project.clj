@@ -11,10 +11,7 @@
   :main ^:skip-aot onwebed-cli.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :cljsbuild {:repl-listen-port 9000
-              :repl-launch-commands
-              {"chrome" ["chrome" "-jsconsole" "http://localhost"]}
-              :builds [{:id "dev"
+  :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src"]
                         :compiler {:main onwebed-cli.core
                                    :output-to "package/index.js"
@@ -22,10 +19,10 @@
                                    :output-dir "target_dev"
                                    :optimizations :none
                                    :pretty-print false
-                                   :foreign-libs [{:file "resources/libs/helpers.js"
-                                                   :provides ["helpers"]
-                                                   :module-type :commonjs}]
-                                   :npm-deps {:left-pad "1.2.0"}
+                                  ;;  :foreign-libs [{:file "resources/libs/helpers.js"
+                                  ;;                  :provides ["helpers"]
+                                  ;;                  :module-type :commonjs}]
+                                  ;;  :npm-deps {:xml-js "1.6.11"}
                                    :parallel-build true}}
 
                        {:id "prod"

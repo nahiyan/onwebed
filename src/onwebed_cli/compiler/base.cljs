@@ -106,14 +106,6 @@
     {:content-items content-items
      :targets targets}))
 
-; Process attributes to a form which can be fed into xml.js-supported objects
-(defn process-atributes
-  [attributes]
-  (let
-   [dummyElementXml (str "<dummy " attributes "/>")
-    dummyElementAttributes (get (first (get (js->clj (xml2js dummyElementXml) :keywordize-keys true) :elements)) :attributes)]
-    dummyElementAttributes))
-
 ; Take a bone (XML element), and process it to a form representing HTML elements
 (defn process-bone
   [bone mapped-targets]
@@ -124,7 +116,7 @@
     content (map (fn [bone]
                    (process-bone bone mapped-targets))
                  children)
-    processed-descriptor-elements (descriptor/processElements descriptorElements mapped-targets content)]
+    processed-descriptor-elements (descriptor/process-elements descriptorElements mapped-targets content)]
     processed-descriptor-elements))
 
 (defn process-bones-and-flesh

@@ -1,5 +1,5 @@
 (ns onwebed-cli.compiler.bones.descriptor
-  (:require [onwebed-cli.compiler.base :refer [process-atributes]]
+  (:require [onwebed-cli.compiler.bones.attributes :as attributes]
             [clojure.string :refer [trim]]))
 
 (def blank-element {:element_name ""
@@ -131,7 +131,7 @@
                        targeted-content)
         classes (trim (get current-element :classes))
         id (get current-element :id)
-        custom-attributes (process-atributes (get current-element :attributes))
+        custom-attributes (attributes/process (get current-element :attributes))
         all-attributes (merge custom-attributes
                               {:id (if (> (count id) 0) id nil)}
                               {:class (if (> (count classes) 0) classes nil)})]

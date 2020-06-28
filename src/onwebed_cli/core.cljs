@@ -1,7 +1,8 @@
 (ns onwebed-cli.core
-  (:require [onwebed-cli.compiler.base :refer [compile_]]
-            [cljs.nodejs :as nodejs]
-            [clojure.tools.cli :refer [parse-opts]]))
+  (:require
+   [onwebed-cli.compiler.base :refer [compile_]]
+   [cljs.nodejs :as nodejs]
+   [clojure.tools.cli :refer [parse-opts]]))
 
 (nodejs/enable-util-print!)
 

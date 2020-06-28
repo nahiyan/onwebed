@@ -1,6 +1,6 @@
 (ns onwebed-cli.core-test
-  (:require [clojure.test :refer :all]
-            [onwebed-cli.core :refer :all]))
+  (:require [clojure.test :refer [is a-test]]
+            [onwebed-cli.core :refer [testing deftest]]))
 
 (deftest a-test
   (testing "FIXME, I fail."
