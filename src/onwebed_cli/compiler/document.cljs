@@ -4,8 +4,8 @@
             [xml-js :refer [xml2js js2xml]]
             [xml-formatter :as xml-format]
             [onwebed-cli.compiler.xml :as xml]
-            [onwebed-cli.compiler.bones.bone :as bone]
-            [onwebed-cli.compiler.flesh :as flesh]
+            [onwebed-cli.compiler.bones.bones :as bones]
+            [onwebed-cli.compiler.flesh-items :as flesh-items]
             [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
 (nodejs/enable-util-print!)
@@ -52,13 +52,13 @@
                           [item]
                           (= (get item :type) "flesh"))
                         bones-and-flesh)
-    descriptor-element-targets (flesh/to-descriptor-element-targets flesh-items)
-    html-elements (clj->js {:elements (bone/bones-to-html-elements bones descriptor-element-targets)})]
+    descriptor-element-targets (flesh-items/to-descriptor-element-targets flesh-items)
+    html-elements (clj->js {:elements (bones/to-html-elements bones descriptor-element-targets)})]
     html-elements))
 
 ;; Process document to HTML elements
 (defn to-html-elements
-  [name source mapped-targets]
+  [name source targets]
   (let
    [document-path (join source name)
     document-content (get-content document-path)
@@ -83,5 +83,5 @@
      document-paths (map (fn [document] (join source document)) document-names)
      document-contents (map get-content document-paths)
      compiled-documents (map to-html document-contents)]
-    ;;  Compile documents
+     (println (js->clj (to-html-elements "base.od" "onwebed-cli-site" nil)))
      (save-compiled-documents compiled-documents document-names destination))))

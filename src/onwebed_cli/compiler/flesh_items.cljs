@@ -1,7 +1,7 @@
-(ns onwebed-cli.compiler.flesh
+(ns onwebed-cli.compiler.flesh_items
   (:require [clojure.string :refer [split]]))
 
-; Generate map of flesh targets and their respective contents
+; Get descriptor element targets
 (defn to-descriptor-element-targets
   [flesh-items]
   (let

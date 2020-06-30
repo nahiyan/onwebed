@@ -2,7 +2,7 @@
   (:require [xml-js :refer [xml2js]]))
 
 ; Process attributes to a form which can be fed into xml.js-supported objects
-(defn process
+(defn to-map
   [attributes]
   (let
    [dummyElementXml (str "<dummy " attributes "/>")

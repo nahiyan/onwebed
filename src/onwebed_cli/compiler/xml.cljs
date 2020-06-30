@@ -1,5 +1,6 @@
 (ns onwebed-cli.compiler.xml)
 
+;; Combine XML text elements into a string
 (defn text-elements-to-string
   [children]
   (let
