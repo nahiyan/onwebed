@@ -115,7 +115,7 @@
    (parse descriptor "element_name" (vector blank-element)))
   ([descriptor mode elements]
    (if (empty? descriptor)
-      ;  No character of descriptor left for processing, just return the result
+      ;  No character of descriptor left for processing, so return the result
      elements
       ;  Process current character based on processing mode
      (parse-element descriptor mode elements))))
@@ -158,8 +158,8 @@
         all-attributes (merge custom-attributes
                               {:id (if (> (count id) 0) id nil)}
                               {:class (if (> (count classes) 0) classes nil)})]
+        (when (= "page" (get current-element :element_name))
+          (println (get current-element :id)))
         {:type "element" :name element-name :elements new-elements :attributes all-attributes})
-      (if (empty? rest-of-elements)
-        ;; No items remaining, and we can show the contents of the box
-        content
-        nil))))
+      ;; No items remaining, and we can show the contents of the box
+      content)))

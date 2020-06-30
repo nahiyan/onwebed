@@ -1,6 +1,6 @@
 (ns onwebed-cli.core
   (:require
-   [onwebed-cli.compiler.base :refer [compile_]]
+   [onwebed-cli.compiler.document :as document]
    [cljs.nodejs :as nodejs]
    [clojure.tools.cli :refer [parse-opts]]))
 
@@ -25,7 +25,7 @@
     summary (get processed-arguments :summary)
     source (first (get processed-arguments :arguments))]
     (if (not= source nil)
-      (compile_ source destination)
+      (document/compile_ source destination)
       (if (not= help nil)
         (show-help summary)
         (if (not= version nil)

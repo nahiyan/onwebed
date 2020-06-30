@@ -5,9 +5,9 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                  [org.clojure/clojurescript "1.9.854"]
-                 [org.clojure/tools.cli "1.0.194"]]
+                 [org.clojure/tools.cli "1.0.194"]
+                 [prismatic/schema "1.1.12"]]
   :plugins [[lein-cljsbuild "1.1.8"] [lein-cljfmt "0.6.7"]]
-  ; :jvm-opts ["--add-modules" "java.xml.bind"]
   :main ^:skip-aot onwebed-cli.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
