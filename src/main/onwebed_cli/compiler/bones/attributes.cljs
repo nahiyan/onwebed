@@ -1,7 +1,7 @@
 (ns onwebed-cli.compiler.bones.attributes
   (:require [xml-js :refer [xml2js]]))
 
-; Process attributes to a form which can be fed into xml.js-supported objects
+; Convert attributes defined in a string to a map (key-value pairs)
 (defn to-map
   [attributes]
   (let

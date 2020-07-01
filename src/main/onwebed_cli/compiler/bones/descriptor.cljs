@@ -1,7 +1,4 @@
-(ns onwebed-cli.compiler.bones.descriptor
-  (:require [onwebed-cli.compiler.bones.attributes :as attributes]
-            ;; [onwebed-cli.compiler.document :as document]
-            [clojure.string :refer [trim]]))
+(ns onwebed-cli.compiler.bones.descriptor)
 
 (def blank-element {:element_name ""
                     :bone_name ""
@@ -116,46 +113,3 @@
        new-elements (get new-arguments 2)]
 
        (to-elements new-characters new-mode new-elements)))))
-
-;; Process descriptor elements into HTML elements
-(defn elements-to-html-elements
-  [elements targets content]
-  (if (seq elements)
-    (let
-     [current-element (first elements)
-      rest-of-elements (rest elements)
-      element-name (get current-element :element_name)
-      elements (elements-to-html-elements rest-of-elements targets content)
-      elements-listified (if (map? elements) (list elements) elements)
-      bone-name (get current-element :bone_name)
-      has-closing-tag? (get current-element :closing-tag)
-      element-target-indices (get (get targets :targets) bone-name)
-      element-targets (if (seq element-target-indices)
-                        (let
-                         [content-items (get targets :content-items)
-                          target-content (reduce str
-                                                 ""
-                                                 (map (fn [targetIndex]
-                                                        (trim (nth content-items targetIndex)))
-                                                      element-target-indices))]
-                          [{:type "text" :text target-content}])
-                        [])
-      new-elements (if (not= nil elements-listified)
-                     (if (seq element-targets)
-                       (concat element-targets elements-listified)
-                       (if (and has-closing-tag? (empty? elements-listified))
-                         (list {})
-                         elements-listified))
-                     element-targets)
-      classes (trim (get current-element :classes))
-      id (get current-element :id)
-      custom-attributes (attributes/to-map (get current-element :attributes))
-      all-attributes (merge custom-attributes
-                            (if (seq id) {:id id} nil)
-                            (if (seq classes) {:class classes} nil))
-      attributes-map (if (seq all-attributes) {:attributes all-attributes} nil)]
-      ;; (when (= "page" (get current-element :element_name))
-      ;;   (println (document/to-html-elements id "onwebed-cli-site" nil)))
-      (merge {:type "element" :name element-name :elements new-elements} attributes-map))
-    ;; No items remaining, and we can show the contents of the box
-    content))
