@@ -1,0 +1,14 @@
+;; shadow-cljs configuration
+{:source-paths ["src/main"]
+ :dependencies [[org.clojure/tools.cli "1.0.194"]
+                [prismatic/schema "1.1.12"]
+                [com.google.javascript/closure-compiler-unshaded "v20200504"]
+                [clj-kondo "2020.06.21"]]
+ :builds
+ {:dev {:target :node-script
+        :main onwebed-cli.core/-main
+        :output-to "package/index.js"
+        :devtools {:repl-init-ns onwebed-cli.core
+                   :repl-pprint true}
+        :compiler-options {:optimizations :none
+                           :pretty-print false}}}}

@@ -1,10 +1,10 @@
 (ns onwebed-cli.core
   (:require
    [onwebed-cli.compiler.document :as document]
-   [cljs.nodejs :as nodejs]
+  ;;  [cljs.nodejs :as nodejs]
    [clojure.tools.cli :refer [parse-opts]]))
 
-(nodejs/enable-util-print!)
+;; (nodejs/enable-util-print!)
 
 (def cli-options
   [["-v" "--version", "Get version information."]

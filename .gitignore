@@ -15,8 +15,9 @@ node_modules
 target_dev
 out
 *.code-workspace
-onwebed-cli-site
+site
 build
 repl
 package
 *.swp
+*.shadow-cljs

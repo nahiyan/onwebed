@@ -1,14 +1,12 @@
 (ns onwebed-cli.compiler.document
-  (:require [cljs.nodejs :as nodejs]
-            [path :refer [extname join]]
-            [xml-js :refer [xml2js js2xml]]
-            [xml-formatter :as xml-format]
-            [onwebed-cli.compiler.xml :as xml]
-            [onwebed-cli.compiler.bones.bones :as bones]
-            [onwebed-cli.compiler.flesh-items :as flesh-items]
-            [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
-
-(nodejs/enable-util-print!)
+  (:require
+   [path :refer [extname join]]
+   [xml-js :refer [xml2js js2xml]]
+   ["./document" :refer (format)]
+   [onwebed-cli.compiler.xml :as xml]
+   [onwebed-cli.compiler.bones.bones :as bones]
+   [onwebed-cli.compiler.flesh_items :as flesh-items]
+   [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
 (defn document? [name]
   (= ".od" (extname name)))
@@ -58,7 +56,7 @@
 
 ;; Process document to HTML elements
 (defn to-html-elements
-  [name source targets]
+  [name source _descriptor-element-targets]
   (let
    [document-path (join source name)
     document-content (get-content document-path)
@@ -71,7 +69,7 @@
   (let
    [html-elements (content-to-html-elements content)]
     ;;  (println (xml-format (js2xml xml-js-object)))
-    (xml-format (js2xml html-elements))))
+    (format (js2xml html-elements))))
 
 (defn compile_
   ([source destination]
@@ -83,5 +81,5 @@
      document-paths (map (fn [document] (join source document)) document-names)
      document-contents (map get-content document-paths)
      compiled-documents (map to-html document-contents)]
-     (println (js->clj (to-html-elements "base.od" "onwebed-cli-site" nil)))
+     (println (js->clj (to-html-elements "base.od" "site" nil)))
      (save-compiled-documents compiled-documents document-names destination))))
