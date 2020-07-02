@@ -14,28 +14,31 @@
     (writeFileSync filePath content)))
 
 (defn save-compiled-documents
-  [contents documents destination]
-  (let [content (first contents)
+  [content-items documents destination]
+  (let [content-item (first content-items)
         document (first documents)
-        restOfContents (rest contents)
-        restOfDocuments (rest documents)]
-    (save-compiled-document content document destination)
-    (when (seq restOfContents)
-      (save-compiled-documents restOfContents restOfDocuments destination))))
+        rest-of-content-items (rest content-items)
+        rest-of-documents (rest documents)]
+    (save-compiled-document content-item document destination)
+    (when (seq rest-of-content-items)
+      (save-compiled-documents rest-of-content-items rest-of-documents destination))))
 
 (defn get-content
-  [documentPath]
-  (readFileSync documentPath "utf8"))
+  [document-path]
+  (readFileSync document-path "utf8"))
 
 (defn compile_
-  ([source destination]
+  ([source-directory destination]
    ;;  Create destination directory if it doesn't exist
    (when (not (existsSync destination)) (mkdirSync destination))
    (let
-    [sourceItems (readdirSync source "utf8")
-     document-names (filter document? sourceItems)
-     document-paths (map (fn [document] (join source document)) document-names)
+    [source-items (readdirSync source-directory "utf8")
+     document-names (filter document? source-items)
+     document-paths (map (fn [document] (join source-directory document)) document-names)
      document-contents (map get-content document-paths)
-     compiled-documents (map html/from-document-content document-contents)]
+     compiled-documents (map (fn [document-content]
+                               (html/from-document-content document-content
+                                                           source-directory))
+                             document-contents)]
     ;;  (println (js->clj (to-html-elements "base.od" "site" nil)))
      (save-compiled-documents compiled-documents document-names destination))))

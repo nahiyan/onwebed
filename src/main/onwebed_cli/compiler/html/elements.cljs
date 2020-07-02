@@ -4,7 +4,6 @@
             [onwebed-cli.compiler.xml.elements :as xml-elements]
             [clojure.string :as string]
             [onwebed-cli.compiler.bone.descriptor.element.targets :as descriptor-element-targets]
-            ;; [onwebed-cli.compiler.flesh_items :as flesh-items]
             [path :refer [join]]
             [xml-js :refer [xml2js]]
             [fs :refer [readFileSync]]))
@@ -13,8 +12,10 @@
 
 ;; Process descriptor elements into HTML elements
 (defn from-bone-descriptor-elements
-  [bone-descriptor-elements bone-descriptor-element-targets content]
-  (if (seq bone-descriptor-elements)
+  [bone-descriptor-elements bone-descriptor-element-targets content source-directory]
+  (if (empty? bone-descriptor-elements)
+    ;; No items remaining, and we can show the contents of the box
+    content
     (let
      [current-bone-descriptor-element (first bone-descriptor-elements)
       rest-of-bone-descriptor-elements (rest bone-descriptor-elements)
@@ -30,7 +31,8 @@
                                                 :attributes))
 
       children (from-bone-descriptor-elements rest-of-bone-descriptor-elements
-                                              bone-descriptor-element-targets content)
+                                              bone-descriptor-element-targets content
+                                              source-directory)
 
       targetted-text (get bone-descriptor-element-targets (keyword bone-descriptor-element-id))
 
@@ -50,7 +52,7 @@
                             (if (seq x-class) {:class x-class} nil))]
       (if (= "page" (get current-bone-descriptor-element :name))
         (get (js->clj (from-document (str x-id ".od")
-                                     "site"
+                                     source-directory
                                      bone-descriptor-element-targets)
                       :keywordize-keys true)
              :elements)
@@ -59,13 +61,11 @@
                       :elements new-children}
                      (if (seq all-attributes)
                        {:attributes all-attributes}
-                       nil)))))
-    ;; No items remaining, and we can show the contents of the box
-    content))
+                       nil)))))))
 
 ; Take a bone (XML element), and process it to a form representing HTML elements
 (defn from-bone
-  [bone descriptor-element-targets]
+  [bone descriptor-element-targets source-directory]
   (let
    [descriptor (get bone :descriptor)
     children (get bone :children)
@@ -73,22 +73,22 @@
     content (reduce concat
                     (list)
                     (map (fn [bone]
-                           (from-bone bone descriptor-element-targets))
+                           (from-bone bone descriptor-element-targets source-directory))
                          children))]
-    (from-bone-descriptor-elements descriptor-elements descriptor-element-targets content)))
+    (from-bone-descriptor-elements descriptor-elements descriptor-element-targets content source-directory)))
 
 (defn from-bones
-  [bones descriptor-element-targets]
+  [bones descriptor-element-targets source-directory]
   (reduce concat
           (list)
           (map (fn [bone]
-                 (from-bone bone descriptor-element-targets))
+                 (from-bone bone descriptor-element-targets source-directory))
                bones)))
 
 (defn from-document-content
-  ([content]
-   (from-document-content content {}))
-  ([content bone-descriptor-element-targets]
+  ([content source-directory]
+   (from-document-content content {} source-directory))
+  ([content bone-descriptor-element-targets source-directory]
    (let
     [xml-elements (js->clj (xml2js content) :keywordize-keys true)
      document-body (filter (fn [element]
@@ -111,14 +111,14 @@
      (descriptor-element-targets/merge_ bone-descriptor-element-targets
                                         (descriptor-element-targets/from-flesh-items flesh-items))
 
-     html-elements (clj->js {:elements (from-bones bones descriptor-element-targets)})]
+     html-elements (clj->js {:elements (from-bones bones descriptor-element-targets source-directory)})]
      html-elements)))
 
 ;; Process document to HTML elements
 (defn from-document
-  [name source descriptor-element-targets]
+  [name source-directory descriptor-element-targets]
   (let
-   [document-path (join source name)
+   [document-path (join source-directory name)
     document-content (readFileSync document-path "utf8")
-    html-elements (from-document-content document-content descriptor-element-targets)]
+    html-elements (from-document-content document-content descriptor-element-targets source-directory)]
     html-elements))
