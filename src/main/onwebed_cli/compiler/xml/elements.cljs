@@ -1,16 +1,15 @@
-(ns onwebed-cli.compiler.xml)
+(ns onwebed-cli.compiler.xml.elements)
 
 ;; Combine XML text elements into a string
-(defn text-elements-to-string
-  [children]
+(defn to-string
+  [elements]
   (let
-   [textElements (filter (fn
-                           [element]
-                           (let
-                            [type (get element :type)]
-                             (= type "text")))
-                         children)
-    texts (map (fn [element] (get element :text)) textElements)]
+   [text-elements (filter (fn [element]
+                            (let
+                             [type (get element :type)]
+                              (= type "text")))
+                          elements)
+    texts (map (fn [element] (get element :text)) text-elements)]
     (apply str texts)))
 
 ; Take XML elements and retrieve bones and flesh in processed form
@@ -34,6 +33,6 @@
               (if (= name "flesh")
                 (let
                  [for_ (get attributes :for)
-                  content (text-elements-to-string elements)]
+                  content (to-string elements)]
                   {:type "flesh" :for for_ :content content})
                 nil)))) elements)))

@@ -1,4 +1,4 @@
-(ns onwebed-cli.compiler.bones.attributes
+(ns onwebed-cli.compiler.xml.element.attributes
   (:require [xml-js :refer [xml2js]]))
 
 ; Convert attributes defined in a string to a map (key-value pairs)
