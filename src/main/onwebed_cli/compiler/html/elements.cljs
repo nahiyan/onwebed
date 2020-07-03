@@ -8,7 +8,7 @@
             [xml-js :refer [xml2js]]
             [fs :refer [readFileSync]]))
 
-(declare from-document)
+(declare from-document-name)
 
 ;; Process descriptor elements into HTML elements
 (defn from-bone-descriptor-elements
@@ -51,9 +51,9 @@
                             (if (seq x-id) {:id x-id} nil)
                             (if (seq x-class) {:class x-class} nil))]
       (if (= "page" (get current-bone-descriptor-element :name))
-        (get (js->clj (from-document (str x-id ".od")
-                                     source-directory
-                                     bone-descriptor-element-targets)
+        (get (js->clj (from-document-name (str x-id ".od")
+                                          source-directory
+                                          bone-descriptor-element-targets)
                       :keywordize-keys true)
              :elements)
         (list (merge {:type "element"
@@ -85,6 +85,78 @@
                  (from-bone bone descriptor-element-targets source-directory))
                bones)))
 
+(declare to-fills)
+
+(defn to-fills-of-element
+  ([element]
+   (to-fills-of-element element {}))
+  ([element fills]
+   (if (= "element" (get element :type))
+     (let
+      [name (get element :name)
+       children (get element :elements)]
+       (if (= name "fill")
+         (let
+          [id (get (get element :attributes) :id)
+           new-fills (assoc fills (keyword id) children)]
+           new-fills)
+         (to-fills children fills)))
+     fills)))
+
+(defn to-fills
+  ([elements]
+   (to-fills elements {}))
+  ([elements fills]
+   (reduce conj
+           fills
+           (map to-fills-of-element
+                elements))))
+
+(declare fill-holes)
+
+(defn fill-holes-of-element
+  [element fills]
+  (case (get element :type)
+    "element"
+    (let
+     [name (get element :name)
+      children (get element :elements)]
+      (case name
+        "hole"
+        (let
+         [id (get (get element :attributes) :id)
+          fill (get fills (keyword id))]
+          (if fill
+            fill
+            nil))
+        "fill"
+        nil
+        (list (assoc element
+                     :children
+                     (fill-holes children
+                                 fills)))))
+    element))
+
+(defn fill-holes
+  ([elements]
+   (fill-holes elements
+               (to-fills elements)))
+  ([elements fills]
+   (let
+    [filled-holes
+     (reduce concat
+             (list)
+             (filter (fn [element]
+                       (if (= nil element)
+                         false
+                         true))
+                     (map
+                      (fn [element]
+                        (fill-holes-of-element element
+                                               fills))
+                      elements)))]
+     filled-holes)))
+
 (defn from-document-content
   ([content source-directory]
    (from-document-content content {} source-directory))
@@ -98,12 +170,10 @@
                              (get (first document-body) :elements)
                              '())
      bones-and-flesh (xml-elements/to-bones-and-flesh document-body-content)
-     bones (filter (fn
-                     [item]
+     bones (filter (fn [item]
                      (= (get item :type) "bone"))
                    bones-and-flesh)
-     flesh-items (filter (fn
-                           [item]
+     flesh-items (filter (fn [item]
                            (= (get item :type) "flesh"))
                          bones-and-flesh)
 
@@ -111,11 +181,17 @@
      (descriptor-element-targets/merge_ bone-descriptor-element-targets
                                         (descriptor-element-targets/from-flesh-items flesh-items))
 
-     html-elements (clj->js {:elements (from-bones bones descriptor-element-targets source-directory)})]
+     bones-to-html (from-bones bones
+                               descriptor-element-targets source-directory)
+
+     filled-holes (fill-holes bones-to-html)
+
+     html-elements (clj->js {:elements filled-holes})]
+    ;;  (println filled-holes "\n")
+    ;;  (println filled-holes)
      html-elements)))
 
-;; Process document to HTML elements
-(defn from-document
+(defn from-document-name
   [name source-directory descriptor-element-targets]
   (let
    [document-path (join source-directory name)

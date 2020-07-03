@@ -7,7 +7,7 @@
     "shadow-cljs": "2.10.13"
   },
   "dependencies": {
-    "xml-formatter": "^2.1.2",
+    "pretty": "^2.0.0",
     "xml-js": "^1.6.11"
   },
   "bin": {

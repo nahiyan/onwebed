@@ -4,8 +4,8 @@
    [onwebed-cli.compiler.html.html :as html]
    [fs :refer [readFileSync readdirSync mkdirSync existsSync writeFileSync]]))
 
-(defn document? [name]
-  (= ".od" (extname name)))
+(defn public-document? [name]
+  (and (not= "_" (first name)) (= ".od" (extname name))))
 
 (defn save-compiled-document
   [content name destination]
@@ -33,12 +33,11 @@
    (when (not (existsSync destination)) (mkdirSync destination))
    (let
     [source-items (readdirSync source-directory "utf8")
-     document-names (filter document? source-items)
+     document-names (filter public-document? source-items)
      document-paths (map (fn [document] (join source-directory document)) document-names)
      document-contents (map get-content document-paths)
      compiled-documents (map (fn [document-content]
                                (html/from-document-content document-content
                                                            source-directory))
                              document-contents)]
-    ;;  (println (js->clj (to-html-elements "base.od" "site" nil)))
      (save-compiled-documents compiled-documents document-names destination))))

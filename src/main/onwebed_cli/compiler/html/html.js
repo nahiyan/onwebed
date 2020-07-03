@@ -1,7 +1,7 @@
-import xmlFormat from 'xml-formatter'
+const prettify = require('pretty')
 
-function format (xml) {
-  return xmlFormat(xml)
+function format (html) {
+  return prettify(html)
 }
 
 export { format }

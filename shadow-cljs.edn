@@ -1,5 +1,5 @@
 ;; shadow-cljs configuration
-{:source-paths ["src/main"]
+{:source-paths ["src/main" "src/test"]
  :dependencies [[org.clojure/tools.cli "1.0.194"]
                 [prismatic/schema "1.1.12"]
                 [com.google.javascript/closure-compiler-unshaded "v20200504"]
@@ -11,4 +11,7 @@
         :devtools {:repl-init-ns onwebed-cli.core
                    :repl-pprint true}
         :compiler-options {:optimizations :none
-                           :pretty-print false}}}}
+                           :pretty-print false}}
+  :test {:target    :node-test
+         :output-to "out/node-tests.js"
+         :autorun   true}}}
