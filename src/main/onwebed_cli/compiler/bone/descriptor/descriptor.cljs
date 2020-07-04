@@ -51,11 +51,18 @@
     (vector rest-of-characters :attributes elements)
     :start-of-x-class
     (let
-     [character-type (get-character-type (first rest-of-characters))
+     [next-character-type (get-character-type (first rest-of-characters))
       current-element (peek elements)]
-      (if (or (= character-type :whitespace) (= character-type :end))
-        (set-element-property :has-closing-tag false rest-of-characters :end current-element elements)
-        (vector rest-of-characters :x-class elements)))
+      ;; Handle closing tag
+      (if (or (= next-character-type :whitespace) (= next-character-type :end))
+        (set-element-property :has-closing-tag
+                              false
+                              rest-of-characters
+                              :name
+                              current-element elements)
+        (vector rest-of-characters
+                :x-class
+                elements)))
     :start-of-x-id
     (vector rest-of-characters :x-id elements)
     :start-of-id

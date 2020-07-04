@@ -40,11 +40,11 @@
       targeted-text-to-html-elements
       (if targetted-text [{:type "text" :text targetted-text}] [])
 
-      new-children (if (not= nil children)
+      new-children (if children
                      (if (seq targeted-text-to-html-elements)
                        (concat targeted-text-to-html-elements children)
                        (if (and has-closing-tag? (empty? children))
-                         (list {})
+                         (list {:type "text" :text ""})
                          children))
                      targeted-text-to-html-elements)
       all-attributes (merge custom-attributes
@@ -91,7 +91,8 @@
   ([element]
    (to-fills-of-element element {}))
   ([element fills]
-   (if (= "element" (get element :type))
+   (case (get element :type)
+     "element"
      (let
       [name (get element :name)
        children (get element :elements)]
@@ -101,7 +102,7 @@
            new-fills (assoc fills (keyword id) children)]
            new-fills)
          (to-fills children fills)))
-     fills)))
+     element)))
 
 (defn to-fills
   ([elements]
@@ -128,13 +129,15 @@
           fill (get fills (keyword id))]
           (if fill
             fill
-            nil))
+            children))
         "fill"
         nil
         (list (assoc element
-                     :children
+                     :elements
                      (fill-holes children
                                  fills)))))
+    "text"
+    (list element)
     element))
 
 (defn fill-holes
@@ -142,25 +145,22 @@
    (fill-holes elements
                (to-fills elements)))
   ([elements fills]
-   (let
-    [filled-holes
-     (reduce concat
-             (list)
-             (filter (fn [element]
-                       (if (= nil element)
-                         false
-                         true))
-                     (map
-                      (fn [element]
-                        (fill-holes-of-element element
-                                               fills))
-                      elements)))]
-     filled-holes)))
+   (reduce concat
+           (list)
+           (filter (fn [element]
+                     (if element
+                       true
+                       false))
+                   (map
+                    (fn [element]
+                      (fill-holes-of-element element
+                                             fills))
+                    elements)))))
 
 (defn from-document-content
   ([content source-directory]
-   (from-document-content content {} source-directory))
-  ([content bone-descriptor-element-targets source-directory]
+   (from-document-content content {} source-directory true))
+  ([content bone-descriptor-element-targets source-directory fill-holes?]
    (let
     [xml-elements (js->clj (xml2js content) :keywordize-keys true)
      document-body (filter (fn [element]
@@ -184,11 +184,13 @@
      bones-to-html (from-bones bones
                                descriptor-element-targets source-directory)
 
-     filled-holes (fill-holes bones-to-html)
 
-     html-elements (clj->js {:elements filled-holes})]
-    ;;  (println filled-holes "\n")
-    ;;  (println filled-holes)
+
+     html-elements (if fill-holes?
+                     (let
+                      [filled-holes (fill-holes bones-to-html)]
+                       (clj->js {:elements filled-holes}))
+                     (clj->js {:elements bones-to-html}))]
      html-elements)))
 
 (defn from-document-name
@@ -196,5 +198,5 @@
   (let
    [document-path (join source-directory name)
     document-content (readFileSync document-path "utf8")
-    html-elements (from-document-content document-content descriptor-element-targets source-directory)]
+    html-elements (from-document-content document-content descriptor-element-targets source-directory false)]
     html-elements))
