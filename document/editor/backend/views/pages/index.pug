@@ -1,0 +1,17 @@
+extends ../base/layout
+
+block content
+    h1 List of Pages
+    table.table.table-striped
+      thead
+        tr
+          th(scope="col") Name
+          th(scope="col") Actions
+      tbody
+        each document in documents
+          tr
+            td= document
+            td
+              a(href="edit/" + document).btn.btn-outline-primary Edit
+              | 
+              a(href="delete/" + document).btn.btn-outline-danger Delete

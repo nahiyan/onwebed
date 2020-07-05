@@ -1,16 +1,12 @@
 {
   "name": "onwebed-cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "main": "./package/index.js",
+  "main": "./bin/index.js",
   "devDependencies": {
     "shadow-cljs": "2.10.13"
   },
-  "dependencies": {
-    "pretty": "^2.0.0",
-    "xml-js": "^1.6.11"
-  },
   "bin": {
-    "onwebed": "./package/index.js"
+    "onwebed": "./bin/index.js"
   }
 }

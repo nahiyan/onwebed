@@ -1,0 +1,16 @@
+doctype html
+block variables
+head
+  meta(charset='utf-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  title= title || "Onwebed"
+  link(rel="stylesheet" href="/resources/index.css")
+  
+body
+  include menu
+  div.container.mt-3
+    block content
+      |Default content
+
+  script(src="/resources/index.js")

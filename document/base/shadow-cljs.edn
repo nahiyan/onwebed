@@ -1,0 +1,15 @@
+;; shadow-cljs configuration
+{:source-paths ["src/main"]
+ :dependencies [[com.google.javascript/closure-compiler-unshaded "v20200504"]
+                [clj-kondo "2020.06.21"]]
+ :builds
+ {:dev {:target :node-library
+        :exports {:isPublic core/public?
+                  :isDocument core/document?
+                  :content core/content
+                  :saveCompiledDocuments core/save-compiled-documents
+                  :sourceItems core/source-items}
+        :output-to "../../lib/document/base.js"
+        :devtools {:repl-pprint true}
+        :compiler-options {:optimizations :none
+                           :pretty-print false}}}}
