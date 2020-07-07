@@ -5,7 +5,7 @@ import Html.Attributes exposing (class, type_, value)
 
 
 type Element
-    = Bone { id : Int, descriptor : String }
+    = Bone { id : Int, descriptor : String, alternateHierarchy : Bool }
     | Flesh { id : Int, for : String, content : String }
     | Text String
     | Root
@@ -17,9 +17,17 @@ toHtml element children =
         Root ->
             div [ Html.Attributes.id "elements" ] children
 
-        Bone { id, descriptor } ->
+        Bone { id, descriptor, alternateHierarchy } ->
             div
-                [ class "bone"
+                [ class
+                    ("bone"
+                        ++ (if alternateHierarchy then
+                                " alternate"
+
+                            else
+                                ""
+                           )
+                    )
                 , Html.Attributes.id ("element" ++ String.fromInt id)
                 ]
                 (div

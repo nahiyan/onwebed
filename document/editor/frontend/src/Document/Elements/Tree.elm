@@ -32,7 +32,7 @@ decoder =
                                                     Just justDescriptor ->
                                                         justDescriptor
                                 in
-                                tree (Bone { id = 0, descriptor = descriptor })
+                                tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False })
                                     (Maybe.withDefault [] elements)
 
                             "document_body" ->
@@ -110,6 +110,43 @@ fromString jsonString =
             Nothing
 
 
+markAlternateHierarchy : Tree.Zipper.Zipper Element -> Tree Element
+markAlternateHierarchy zipper =
+    let
+        newZipper =
+            case Tree.Zipper.label zipper of
+                Bone currentBone ->
+                    case Tree.Zipper.parent zipper of
+                        Just parentZipper ->
+                            let
+                                parent =
+                                    parentZipper |> Tree.Zipper.label
+                            in
+                            case parent of
+                                Bone parentBone ->
+                                    zipper |> Tree.Zipper.replaceLabel (Bone { currentBone | alternateHierarchy = not parentBone.alternateHierarchy }) |> Tree.Zipper.forward
+
+                                _ ->
+                                    Tree.Zipper.forward zipper
+
+                        _ ->
+                            Tree.Zipper.forward zipper
+
+                _ ->
+                    Tree.Zipper.forward zipper
+    in
+    case newZipper of
+        Nothing ->
+            Tree.Zipper.toTree zipper
+
+        Just justNewZipper ->
+            markAlternateHierarchy justNewZipper
+
+
 toHtml : Tree Element -> Html msg
 toHtml tree =
-    Tree.restructure (\element -> element) Document.Element.toHtml tree
+    let
+        treeWithMarkedAlternateHierarchy =
+            markAlternateHierarchy (Tree.Zipper.fromTree tree)
+    in
+    Tree.restructure (\element -> element) Document.Element.toHtml treeWithMarkedAlternateHierarchy
