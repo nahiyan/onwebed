@@ -1,13 +1,13 @@
 module View exposing (view)
 
-import Core exposing (Model)
-import Document.Elements.Tree
+import Core exposing (Model, Msg)
+import Document.Html
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, id)
 import Menu
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     div
         []
@@ -21,6 +21,6 @@ view model =
                     text "Document is blank, add elements to fill it up!"
 
                 Just tree ->
-                    Document.Elements.Tree.toHtml tree
+                    Document.Html.fromTree tree
             ]
         ]

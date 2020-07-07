@@ -1,9 +1,7 @@
-module Document.Elements.Tree exposing (fromString, toHtml)
+module Document.Elements.Tree exposing (fromString, markAlternateHierarchy, replaceElement)
 
 import Dict
 import Document.Element exposing (Element(..))
-import Html exposing (Html, div)
-import Html.Attributes exposing (class)
 import Json.Decode exposing (Decoder, decodeString, dict, field, lazy, list, map5, maybe, string)
 import Tree exposing (Tree, label, tree)
 import Tree.Zipper
@@ -41,7 +39,7 @@ decoder =
                             -- Flesh
                             _ ->
                                 let
-                                    for =
+                                    targets =
                                         case attributes of
                                             Nothing ->
                                                 ""
@@ -51,8 +49,8 @@ decoder =
                                                     Nothing ->
                                                         ""
 
-                                                    Just justFor ->
-                                                        justFor
+                                                    Just justTarget ->
+                                                        justTarget
 
                                     content =
                                         List.foldl
@@ -67,7 +65,7 @@ decoder =
                                             ""
                                             (Maybe.withDefault [] elements)
                                 in
-                                tree (Flesh { id = 0, for = for, content = content }) []
+                                tree (Flesh { id = 0, targets = targets, content = content }) []
 
                     -- Text
                     _ ->
@@ -143,10 +141,49 @@ markAlternateHierarchy zipper =
             markAlternateHierarchy justNewZipper
 
 
-toHtml : Tree Element -> Html msg
-toHtml tree =
+replaceElementStep : Int -> (Element -> Element) -> Tree.Zipper.Zipper Element -> Tree Element
+replaceElementStep index replace zipper =
     let
-        treeWithMarkedAlternateHierarchy =
-            markAlternateHierarchy (Tree.Zipper.fromTree tree)
+        currentElement =
+            zipper |> Tree.Zipper.label
+
+        isDesiredElement =
+            case currentElement of
+                Bone bone ->
+                    bone.id == index
+
+                Flesh flesh ->
+                    flesh.id == index
+
+                _ ->
+                    False
     in
-    Tree.restructure (\element -> element) Document.Element.toHtml treeWithMarkedAlternateHierarchy
+    if isDesiredElement then
+        let
+            replacement =
+                replace currentElement
+        in
+        zipper
+            |> Tree.Zipper.replaceLabel replacement
+            |> Tree.Zipper.toTree
+
+    else
+        let
+            newZipper =
+                zipper |> Tree.Zipper.forward
+        in
+        case newZipper of
+            Nothing ->
+                Tree.Zipper.toTree zipper
+
+            Just justNewZipper ->
+                replaceElementStep index replace justNewZipper
+
+
+replaceElement : Int -> (Element -> Element) -> Tree Element -> Tree Element
+replaceElement index replace tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    replaceElementStep index replace zipper

@@ -1,6 +1,6 @@
 module Menu exposing (toHtml)
 
-import Core exposing (Model)
+import Core exposing (Model, Msg)
 import Html exposing (Html, a, button, div, i, input, nav, span, text)
 import Html.Attributes exposing (attribute, class, href, id, type_)
 
@@ -22,7 +22,7 @@ menuItem name machineName =
 -- menu item
 
 
-menuItemToHtml : MenuItem -> Html msg
+menuItemToHtml : MenuItem -> Html Core.Msg
 menuItemToHtml item =
     div
         []
@@ -37,12 +37,12 @@ menuItemToHtml item =
         ]
 
 
-menuItemsToHtml : List MenuItem -> List (Html msg)
+menuItemsToHtml : List MenuItem -> List (Html Msg)
 menuItemsToHtml menuItemsToBeConverted =
     List.map menuItemToHtml menuItemsToBeConverted
 
 
-toHtml : Model -> Html msg
+toHtml : Model -> Html Msg
 toHtml _ =
     let
         menuHeader =
