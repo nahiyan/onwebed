@@ -15,8 +15,11 @@
    (when (not (existsSync destination)) (mkdirSync destination))
    (let
     [source-items (sourceItems source-directory)
-     document-names (filter isPublic source-items)
-     document-paths (map (fn [document] (join source-directory document)) document-names)
+     document-names (filter isPublic
+                            source-items)
+     document-paths (map (fn [document]
+                           (join source-directory document))
+                         document-names)
      document-contents (map getContent document-paths)
      compiled-documents (map (fn [document-content]
                                (html/from-document-content document-content

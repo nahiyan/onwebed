@@ -10,7 +10,4 @@
         :devtools {:repl-init-ns onwebed-cli.core
                    :repl-pprint true}
         :compiler-options {:optimizations :none
-                           :pretty-print false}}
-  :test {:target    :node-test
-         :output-to "out/node-tests.js"
-         :autorun   true}}}
+                           :pretty-print false}}}}

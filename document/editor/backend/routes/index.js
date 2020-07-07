@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 const document = require('../../../../lib/document/base')
 const path = require('path')
+const xmlJs = require('xml-js')
 
 const sourceDirectory = path.resolve('../../../site')
 
@@ -20,7 +21,16 @@ router.get('/', function (req, res, next) {
 
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name
-  res.render('pages/edit', { title: 'Onwebed - Pages' })
+  const documentBodyChildren = xmlJs
+    .xml2js(document.content(path.join(sourceDirectory, name + '.od')))
+    .elements.filter(function (element) {
+      return element.name === 'document_body'
+    })[0].elements
+  res.render('pages/edit', {
+    title: 'Onwebed - Pages',
+    content: { elements: documentBodyChildren },
+    name: name
+  })
 })
 
 module.exports = router
