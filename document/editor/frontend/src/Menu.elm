@@ -100,8 +100,7 @@ toHtml _ =
             ]
     in
     nav
-        [ class "main-menu"
-        , id "menu"
+        [ id "menu"
         ]
         [ div
             [ class "container"

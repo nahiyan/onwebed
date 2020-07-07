@@ -3,7 +3,7 @@ $box_border_size: 2px
 body
     font-family: 'Inconsolata', sans-serif
     font-size: 1rem
-    overflow: hidden
+    // overflow: hidden
     margin: 0px
 
 .noscroll
@@ -84,63 +84,35 @@ body
         a, button, div
             margin: 0.3em
 
-/* Playground */
+/* Elements */
 
-#playground
+#elements
+    margin-top: 8em
     padding: 1.5em 0.3em 1.5em 0.3em
 
-#playground > .solid_box
+#elements > .bone
     // dealing with collapsing margin
     margin: 1em 0em
     width: 100%
 
-/* Solid and Liquid Box */
-
-.solid_box, .liquid_box
-    margin: 0.5em
+.bone, .flesh
+    margin: 0.5em 1em 0.5em 1em
     border-radius: 3px
-
-.solid_box
     border: $box_border_size solid #DDD
-    padding: 0.7em
-    width: calc(100% - 1em)
+    padding: 1em
+    width: 100%
     display: flex
     flex-wrap: wrap
     align-content: space-between
     align-items: flex-start
 
-    .box-label
-        background: #545BE2
-        padding: 0.1em 0.5em 0.1em 0.5em
+    .input-group
+        margin: 0.5em 1em 0.5em 1em
 
-.liquid_box
-    border: $box_border_size solid #F0F0F0
-    max-width: calc(100% - 1em)
-    display: inline-block
-    padding: 0.5em
-    background: #F0F0F0
-    white-space: pre-wrap
-    font-size: 1.05em
-    font-family: 'Roboto'
-
-    .box-label
-        max-width: calc(100% - 0.5em)
-        background: #8589e5
-        margin: 0em 0.5em 0em 0em
-        padding: 0.1em 0.5em 0.1em 0.5em
-
-.box-label
-    display: inline-block
-    line-height: 1.5em
-    font-size: 1.1rem
-    font-family: inherit
-    max-width: calc(100% - 1em)
-    word-wrap: break-word
-    margin: 0.5em
-    font-weight: 700
-    border-radius: 3px
-    color: white
-    font-family: 'Inconsolata'
+.flesh
+    margin: 1em 0em
+    textarea
+        margin: 0.5em 1em 1em 1em
 
 .alternate
     border-style: dashed
@@ -167,7 +139,7 @@ body
 /* Media queries */
 
 @media (min-width: 769px)
-    #playground
+    // #elements
         // padding: 1.3em
 
     #menu_header span > div[contenteditable='true']

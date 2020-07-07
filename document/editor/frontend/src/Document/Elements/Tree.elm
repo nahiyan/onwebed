@@ -2,9 +2,11 @@ module Document.Elements.Tree exposing (fromString, toHtml)
 
 import Dict
 import Document.Element exposing (Element(..))
-import Html exposing (Html, text)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import Json.Decode exposing (Decoder, decodeString, dict, field, lazy, list, map5, maybe, string)
 import Tree exposing (Tree, label, tree)
+import Tree.Zipper
 
 
 decoder : Decoder (List (Tree Element))
@@ -83,7 +85,26 @@ fromString : String -> Maybe (Tree Element)
 fromString jsonString =
     case decodeString (field "elements" decoder) jsonString of
         Ok elements ->
-            Just (tree Root elements)
+            let
+                tree_ =
+                    tree Root elements
+
+                indexedTree =
+                    Tree.indexedMap
+                        (\index element ->
+                            case element of
+                                Bone bone ->
+                                    Bone { bone | id = index }
+
+                                Flesh flesh ->
+                                    Flesh { flesh | id = index }
+
+                                _ ->
+                                    element
+                        )
+                        tree_
+            in
+            Just indexedTree
 
         Err _ ->
             Nothing
@@ -91,4 +112,4 @@ fromString jsonString =
 
 toHtml : Tree Element -> Html msg
 toHtml tree =
-    text ""
+    Tree.restructure (\element -> element) Document.Element.toHtml tree
