@@ -1,7 +1,7 @@
 $box_border_size: 2px
 
 body
-    font-family: 'Inconsolata', sans-serif
+    // font-family: 'Inconsolata', sans-serif
     font-size: 1rem
     // overflow: hidden
     margin: 0px
@@ -81,19 +81,22 @@ body
         display: flex
         flex-wrap: wrap
 
-        a, button, div
+        & > a, & > button, & > div
             margin: 0.3em
 
 /* Elements */
 
-#elements
-    margin-top: 8em
-    padding: 1.5em 0.3em 1.5em 0.3em
+#document
+    font-family: 'Inconsolata', sans-serif
 
-#elements > .bone
-    // dealing with collapsing margin
-    margin: 1em 0em
-    width: 100%
+    #elements
+        margin-top: 8em
+        padding: 1.5em 0.3em 1.5em 0.3em
+
+    #elements > .bone
+        // dealing with collapsing margin
+        margin: 1em 0em
+        width: 100%
 
 .bone, .flesh
     margin: 0.5em 1em 0.5em 1em
@@ -109,13 +112,14 @@ body
     .input-group
         margin: 0.5em 1em 0.5em 1em
 
+.bone.alternate
+    border-style: dashed
+
 .flesh
+    border-top: 2px solid #007bff
     margin: 1em 0em
     textarea
         margin: 0.5em 1em 1em 1em
-
-.bone.alternate
-    border-style: dashed
 
 .selected
     border-color: #4d55c6

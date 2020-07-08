@@ -21,6 +21,6 @@ view model =
                     text "Document is blank, add elements to fill it up!"
 
                 Just tree ->
-                    Document.Html.fromTree tree
+                    tree |> Document.Html.fromTree model
             ]
         ]

@@ -1,4 +1,4 @@
-module Document.Elements.Tree exposing (fromString, markAlternateHierarchy, replaceElement)
+module Document.Elements.Tree exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, fromString, mapElements, markAlternateHierarchy, removeElement, replaceElement)
 
 import Dict
 import Document.Element exposing (Element(..))
@@ -30,7 +30,7 @@ decoder =
                                                     Just justDescriptor ->
                                                         justDescriptor
                                 in
-                                tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False })
+                                tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
                                     (Maybe.withDefault [] elements)
 
                             "document_body" ->
@@ -65,7 +65,7 @@ decoder =
                                             ""
                                             (Maybe.withDefault [] elements)
                                 in
-                                tree (Flesh { id = 0, targets = targets, content = content }) []
+                                tree (Flesh { id = 0, targets = targets, content = content, selected = False }) []
 
                     -- Text
                     _ ->
@@ -141,43 +141,17 @@ markAlternateHierarchy zipper =
             markAlternateHierarchy justNewZipper
 
 
-replaceElementStep : Int -> (Element -> Element) -> Tree.Zipper.Zipper Element -> Tree Element
-replaceElementStep index replace zipper =
-    let
-        currentElement =
-            zipper |> Tree.Zipper.label
+checkElementWithIndex : Int -> Element -> Bool
+checkElementWithIndex index element =
+    case element of
+        Bone bone ->
+            bone.id == index
 
-        isDesiredElement =
-            case currentElement of
-                Bone bone ->
-                    bone.id == index
+        Flesh flesh ->
+            flesh.id == index
 
-                Flesh flesh ->
-                    flesh.id == index
-
-                _ ->
-                    False
-    in
-    if isDesiredElement then
-        let
-            replacement =
-                replace currentElement
-        in
-        zipper
-            |> Tree.Zipper.replaceLabel replacement
-            |> Tree.Zipper.toTree
-
-    else
-        let
-            newZipper =
-                zipper |> Tree.Zipper.forward
-        in
-        case newZipper of
-            Nothing ->
-                Tree.Zipper.toTree zipper
-
-            Just justNewZipper ->
-                replaceElementStep index replace justNewZipper
+        _ ->
+            False
 
 
 replaceElement : Int -> (Element -> Element) -> Tree Element -> Tree Element
@@ -186,4 +160,132 @@ replaceElement index replace tree =
         zipper =
             Tree.Zipper.fromTree tree
     in
-    replaceElementStep index replace zipper
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            let
+                replacement =
+                    replace (newZipper |> Tree.Zipper.label)
+            in
+            Tree.Zipper.replaceLabel replacement newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
+
+
+removeElement : Int -> Tree Element -> Tree Element
+removeElement index tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            case Tree.Zipper.removeTree newZipper of
+                Just newZipperAfterRemoval ->
+                    newZipperAfterRemoval |> Tree.Zipper.toTree
+
+                Nothing ->
+                    Tree.tree Root []
+
+        Nothing ->
+            tree
+
+
+mapElements : (Element -> Element) -> Tree Element -> Tree Element
+mapElements map tree =
+    Tree.map map tree
+
+
+addElementBeforeElement : Int -> Element -> Tree Element -> Tree Element
+addElementBeforeElement index element tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            let
+                newTree =
+                    Tree.tree element []
+            in
+            Tree.Zipper.prepend newTree newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
+
+
+addElementAfterElement : Int -> Element -> Tree Element -> Tree Element
+addElementAfterElement index element tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            let
+                newTree =
+                    Tree.tree element []
+            in
+            Tree.Zipper.append newTree newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
+
+
+addElementInsideElementAsFirstChild : Int -> Element -> Tree Element -> Tree Element
+addElementInsideElementAsFirstChild index element tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            let
+                newTree =
+                    Tree.tree element []
+
+                newChildren =
+                    newTree :: (newZipper |> Tree.Zipper.children)
+
+                currentElement =
+                    newZipper |> Tree.Zipper.label
+
+                replacement =
+                    Tree.tree currentElement newChildren
+            in
+            Tree.Zipper.replaceTree replacement newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
+
+
+addElementInsideElementAsLastChild : Int -> Element -> Tree Element -> Tree Element
+addElementInsideElementAsLastChild index element tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+        Just newZipper ->
+            let
+                newTree =
+                    Tree.tree element []
+
+                newChildren =
+                    List.append (newZipper |> Tree.Zipper.children) [ newTree ]
+
+                currentElement =
+                    newZipper |> Tree.Zipper.label
+
+                replacement =
+                    Tree.tree currentElement newChildren
+            in
+            Tree.Zipper.replaceTree replacement newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
