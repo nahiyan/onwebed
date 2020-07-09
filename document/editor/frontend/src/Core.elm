@@ -31,8 +31,8 @@ type alias Model =
     { document : Maybe (Tree Element)
     , pageName : String
     , mode : Mode
-    , elementSelection : Int
     , hotkeysEnabled : Bool
+    , elementEditingEnabled : Bool
     }
 
 

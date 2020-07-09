@@ -1,4 +1,4 @@
-module Document.Elements.Tree exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, fromString, mapElements, markAlternateHierarchy, removeElement, replaceElement)
+module Document exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, fromString, mapElements, markAlternateHierarchy, removeElement, replaceElement)
 
 import Dict
 import Document.Element exposing (Element(..))

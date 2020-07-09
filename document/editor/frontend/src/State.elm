@@ -2,19 +2,19 @@ module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
 import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
+import Document
 import Document.Element exposing (Element(..))
-import Document.Elements.Tree as Tree
 import Json.Decode
 import Rest
 
 
 initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
-    ( { document = Tree.fromString flags.content
+    ( { document = Document.fromString flags.content
       , pageName = flags.pageName
       , mode = Core.Default
-      , elementSelection = 0
       , hotkeysEnabled = True
+      , elementEditingEnabled = True
       }
     , Cmd.none
     )
@@ -33,7 +33,7 @@ update message model =
                         SetBoneDescriptor index descriptor ->
                             let
                                 newDocument =
-                                    Tree.replaceElement index
+                                    Document.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Bone bone ->
@@ -49,7 +49,7 @@ update message model =
                         SetFleshTargets index targets ->
                             let
                                 newDocument =
-                                    Tree.replaceElement index
+                                    Document.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Flesh flesh ->
@@ -65,7 +65,7 @@ update message model =
                         SetFleshContent index content ->
                             let
                                 newDocument =
-                                    Tree.replaceElement index
+                                    Document.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Flesh flesh ->
@@ -84,7 +84,7 @@ update message model =
                         SelectElement id ->
                             let
                                 newDocument =
-                                    Tree.mapElements
+                                    Document.mapElements
                                         (\element ->
                                             case element of
                                                 Document.Element.Bone bone ->
@@ -135,7 +135,7 @@ update message model =
                                         Core.Removal ->
                                             let
                                                 newDocument =
-                                                    Tree.removeElement id document
+                                                    Document.removeElement id document
                                             in
                                             { model
                                                 | document = Just newDocument
@@ -149,7 +149,7 @@ update message model =
                                                         Core.Before ->
                                                             let
                                                                 newDocument =
-                                                                    Tree.addElementBeforeElement id Document.Element.emptyBone document
+                                                                    Document.addElementBeforeElement id Document.Element.emptyBone document
                                                             in
                                                             { model
                                                                 | document = Just newDocument
@@ -159,7 +159,7 @@ update message model =
                                                         Core.After ->
                                                             let
                                                                 newDocument =
-                                                                    Tree.addElementAfterElement id Document.Element.emptyBone document
+                                                                    Document.addElementAfterElement id Document.Element.emptyBone document
                                                             in
                                                             { model
                                                                 | document = Just newDocument
@@ -169,7 +169,7 @@ update message model =
                                                         Core.InsideFirst ->
                                                             let
                                                                 newDocument =
-                                                                    Tree.addElementInsideElementAsFirstChild id Document.Element.emptyBone document
+                                                                    Document.addElementInsideElementAsFirstChild id Document.Element.emptyBone document
                                                             in
                                                             { model
                                                                 | document = Just newDocument
@@ -179,12 +179,37 @@ update message model =
                                                         Core.InsideLast ->
                                                             let
                                                                 newDocument =
-                                                                    Tree.addElementInsideElementAsLastChild id Document.Element.emptyBone document
+                                                                    Document.addElementInsideElementAsLastChild id Document.Element.emptyBone document
                                                             in
                                                             { model
                                                                 | document = Just newDocument
                                                                 , mode = Core.Default
                                                             }
+
+                                                Core.Flesh ->
+                                                    case additionType of
+                                                        Core.Before ->
+                                                            let
+                                                                newDocument =
+                                                                    Document.addElementBeforeElement id Document.Element.emptyFlesh document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                        Core.After ->
+                                                            let
+                                                                newDocument =
+                                                                    Document.addElementAfterElement id Document.Element.emptyFlesh document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                        _ ->
+                                                            model
 
                                                 _ ->
                                                     model

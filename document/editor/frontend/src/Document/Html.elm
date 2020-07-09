@@ -1,8 +1,8 @@
 module Document.Html exposing (fromDocumentElement, fromTree)
 
 import Core exposing (Mode, Model, Msg(..))
+import Document
 import Document.Element exposing (Element(..))
-import Document.Elements.Tree
 import Html exposing (Html, div, input, span, text, textarea)
 import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (on, onBlur, onFocus, stopPropagationOn, targetValue)
@@ -161,7 +161,7 @@ fromTree : Model -> Tree.Tree Element -> Html Msg
 fromTree model tree =
     let
         treeWithMarkedAlternateHierarchy =
-            Document.Elements.Tree.markAlternateHierarchy
+            Document.markAlternateHierarchy
                 (Tree.Zipper.fromTree tree)
     in
     Tree.restructure (\element -> element) (fromDocumentElement model) treeWithMarkedAlternateHierarchy

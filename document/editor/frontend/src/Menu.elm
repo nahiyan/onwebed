@@ -82,38 +82,74 @@ toHtml model =
                         [ text "Bone" ]
                     , span
                         [ class "dropdown-item"
-                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.Before)))
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Bone
+                                    (Core.Addition Core.Before)
+                                )
+                            )
                         ]
                         [ text "Before" ]
                     , span
                         [ class "dropdown-item"
-                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.After)))
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Bone
+                                    (Core.Addition Core.After)
+                                )
+                            )
                         ]
                         [ text "After" ]
                     , span
                         [ class "dropdown-item"
-                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.InsideFirst)))
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Bone
+                                    (Core.Addition Core.InsideFirst)
+                                )
+                            )
                         ]
                         [ text "Inside (First)" ]
                     , span
                         [ class "dropdown-item"
-                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.InsideLast)))
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Bone
+                                    (Core.Addition Core.InsideLast)
+                                )
+                            )
                         ]
                         [ text "Inside (Last)" ]
                     , div
                         [ class "dropdown-divider" ]
                         []
-                    , Html.h1
+                    , h6
                         [ class "dropdown-header" ]
                         [ text "Flesh" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Flesh
+                                    (Core.Addition Core.Before)
+                                )
+                            )
                         ]
                         [ text "Before" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick
+                            (SetMode
+                                (Core.Selection
+                                    Core.Flesh
+                                    (Core.Addition Core.After)
+                                )
+                            )
                         ]
                         [ text "After" ]
                     ]
