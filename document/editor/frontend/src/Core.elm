@@ -1,20 +1,30 @@
-module Core exposing (FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SelectionType(..))
+module Core exposing (AdditionType(..), FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SelectionPurpose(..), SelectionType(..))
 
 import Document.Element exposing (Element)
 import Tree exposing (Tree)
 
 
-type SelectionType
+type AdditionType
     = Before
     | After
     | InsideFirst
     | InsideLast
 
 
+type SelectionPurpose
+    = Removal
+    | Addition AdditionType
+
+
+type SelectionType
+    = Bone
+    | Flesh
+    | BoneAndFlesh
+
+
 type Mode
     = Default
-    | BoneSelectionForAddition SelectionType
-    | ElementSelectionForRemoval
+    | Selection SelectionType SelectionPurpose
 
 
 type alias Model =
@@ -36,12 +46,11 @@ type Msg
     = SetBoneDescriptor Int String
     | SetFleshTargets Int String
     | SetFleshContent Int String
-    | MenuItemClick String
     | SetMode Mode
     | SelectElement Int
-    | RemoveElement Int
     | KeyInteraction KeyInteractionType String Bool
     | ToggleHotkeysEnabled
+    | ElementClick Int
 
 
 type alias FlagType =

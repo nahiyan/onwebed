@@ -1,8 +1,8 @@
 module Menu exposing (toHtml)
 
-import Core exposing (Mode(..), Model, Msg(..))
-import Html exposing (Html, a, button, div, h6, i, input, nav, span, text)
-import Html.Attributes exposing (attribute, class, href, id, type_)
+import Core exposing (Model, Msg(..))
+import Html exposing (Html, a, button, div, h6, i, nav, span, text)
+import Html.Attributes exposing (attribute, class, href, id)
 import Html.Events exposing (onClick)
 
 
@@ -77,27 +77,27 @@ toHtml model =
                     [ class "dropdown-menu"
                     , Html.Attributes.attribute "aria-labelledby" "addElement"
                     ]
-                    [ Html.h1
+                    [ h6
                         [ class "dropdown-header" ]
                         [ text "Bone" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.Before)))
                         ]
                         [ text "Before" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.After)))
                         ]
                         [ text "After" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.InsideFirst)))
                         ]
                         [ text "Inside (First)" ]
-                    , a
+                    , span
                         [ class "dropdown-item"
-                        , Html.Attributes.attribute "href" "#"
+                        , onClick (SetMode (Core.Selection Core.Bone (Core.Addition Core.InsideLast)))
                         ]
                         [ text "Inside (Last)" ]
                     , div
@@ -121,7 +121,7 @@ toHtml model =
             , button
                 [ class "btn btn-outline-danger"
                 , attribute "type" "button"
-                , onClick (SetMode ElementSelectionForRemoval)
+                , onClick (SetMode (Core.Selection Core.BoneAndFlesh Core.Removal))
                 ]
                 [ text "- Element"
                 ]
@@ -146,9 +146,28 @@ toHtml model =
             [ class "container"
             ]
             (case model.mode of
-                ElementSelectionForRemoval ->
+                Core.Selection _ Core.Removal ->
                     [ div []
                         [ text "Select an element which you want to remove." ]
+                    ]
+
+                Core.Selection _ (Core.Addition additionType) ->
+                    [ div []
+                        [ text
+                            (case additionType of
+                                Core.Before ->
+                                    "Select an element before which you want to add a new element."
+
+                                Core.After ->
+                                    "Select an element after which you want to add a new element."
+
+                                Core.InsideFirst ->
+                                    "Select an element inside which you want to add a new element as its first child."
+
+                                Core.InsideLast ->
+                                    "Select an element inside which you want to add a new element as its last child."
+                            )
+                        ]
                     ]
 
                 _ ->

@@ -1,7 +1,7 @@
 module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
-import Core exposing (FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..))
+import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
 import Document.Element exposing (Element(..))
 import Document.Elements.Tree as Tree
 import Json.Decode
@@ -12,7 +12,7 @@ initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
     ( { document = Tree.fromString flags.content
       , pageName = flags.pageName
-      , mode = Default
+      , mode = Core.Default
       , elementSelection = 0
       , hotkeysEnabled = True
       }
@@ -36,8 +36,8 @@ update message model =
                                     Tree.replaceElement index
                                         (\element ->
                                             case element of
-                                                Bone bone ->
-                                                    Bone { bone | descriptor = descriptor }
+                                                Document.Element.Bone bone ->
+                                                    Document.Element.Bone { bone | descriptor = descriptor }
 
                                                 _ ->
                                                     element
@@ -52,8 +52,8 @@ update message model =
                                     Tree.replaceElement index
                                         (\element ->
                                             case element of
-                                                Flesh flesh ->
-                                                    Flesh { flesh | targets = targets }
+                                                Document.Element.Flesh flesh ->
+                                                    Document.Element.Flesh { flesh | targets = targets }
 
                                                 _ ->
                                                     element
@@ -68,8 +68,8 @@ update message model =
                                     Tree.replaceElement index
                                         (\element ->
                                             case element of
-                                                Flesh flesh ->
-                                                    Flesh { flesh | content = content }
+                                                Document.Element.Flesh flesh ->
+                                                    Document.Element.Flesh { flesh | content = content }
 
                                                 _ ->
                                                     element
@@ -77,14 +77,6 @@ update message model =
                                         document
                             in
                             { model | document = Just newDocument }
-
-                        MenuItemClick menuItemMachineName ->
-                            case menuItemMachineName of
-                                "add_element" ->
-                                    model
-
-                                _ ->
-                                    model
 
                         SetMode mode ->
                             { model | mode = mode }
@@ -95,19 +87,19 @@ update message model =
                                     Tree.mapElements
                                         (\element ->
                                             case element of
-                                                Bone bone ->
+                                                Document.Element.Bone bone ->
                                                     if bone.id == id then
-                                                        Bone { bone | selected = True }
+                                                        Document.Element.Bone { bone | selected = True }
 
                                                     else
-                                                        Bone { bone | selected = False }
+                                                        Document.Element.Bone { bone | selected = False }
 
-                                                Flesh flesh ->
+                                                Document.Element.Flesh flesh ->
                                                     if flesh.id == id then
-                                                        Flesh { flesh | selected = True }
+                                                        Document.Element.Flesh { flesh | selected = True }
 
                                                     else
-                                                        Flesh { flesh | selected = False }
+                                                        Document.Element.Flesh { flesh | selected = False }
 
                                                 _ ->
                                                     element
@@ -116,26 +108,16 @@ update message model =
                             in
                             { model | document = Just newDocument }
 
-                        RemoveElement id ->
-                            let
-                                newDocument =
-                                    Tree.removeElement id document
-                            in
-                            { model
-                                | document = Just newDocument
-                                , mode = Default
-                            }
-
                         KeyInteraction _ key _ ->
                             if model.hotkeysEnabled then
                                 case model.mode of
-                                    Default ->
+                                    Core.Default ->
                                         model
 
                                     _ ->
                                         case key of
                                             "Escape" ->
-                                                { model | mode = Default }
+                                                { model | mode = Core.Default }
 
                                             _ ->
                                                 model
@@ -145,6 +127,70 @@ update message model =
 
                         ToggleHotkeysEnabled ->
                             { model | hotkeysEnabled = not model.hotkeysEnabled }
+
+                        ElementClick id ->
+                            case model.mode of
+                                Core.Selection type_ purpose ->
+                                    case purpose of
+                                        Core.Removal ->
+                                            let
+                                                newDocument =
+                                                    Tree.removeElement id document
+                                            in
+                                            { model
+                                                | document = Just newDocument
+                                                , mode = Core.Default
+                                            }
+
+                                        Core.Addition additionType ->
+                                            case type_ of
+                                                Core.Bone ->
+                                                    case additionType of
+                                                        Core.Before ->
+                                                            let
+                                                                newDocument =
+                                                                    Tree.addElementBeforeElement id Document.Element.emptyBone document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                        Core.After ->
+                                                            let
+                                                                newDocument =
+                                                                    Tree.addElementAfterElement id Document.Element.emptyBone document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                        Core.InsideFirst ->
+                                                            let
+                                                                newDocument =
+                                                                    Tree.addElementInsideElementAsFirstChild id Document.Element.emptyBone document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                        Core.InsideLast ->
+                                                            let
+                                                                newDocument =
+                                                                    Tree.addElementInsideElementAsLastChild id Document.Element.emptyBone document
+                                                            in
+                                                            { model
+                                                                | document = Just newDocument
+                                                                , mode = Core.Default
+                                                            }
+
+                                                _ ->
+                                                    model
+
+                                _ ->
+                                    model
     in
     ( newModel, Cmd.none )
 

@@ -3,7 +3,7 @@ module Document.Elements.Tree exposing (addElementAfterElement, addElementBefore
 import Dict
 import Document.Element exposing (Element(..))
 import Json.Decode exposing (Decoder, decodeString, dict, field, lazy, list, map5, maybe, string)
-import Tree exposing (Tree, label, tree)
+import Tree exposing (Tree, label)
 import Tree.Zipper
 
 
@@ -30,11 +30,11 @@ decoder =
                                                     Just justDescriptor ->
                                                         justDescriptor
                                 in
-                                tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
+                                Tree.tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
                                     (Maybe.withDefault [] elements)
 
                             "document_body" ->
-                                tree Root (Maybe.withDefault [] elements)
+                                Tree.tree Root (Maybe.withDefault [] elements)
 
                             -- Flesh
                             _ ->
@@ -65,11 +65,11 @@ decoder =
                                             ""
                                             (Maybe.withDefault [] elements)
                                 in
-                                tree (Flesh { id = 0, targets = targets, content = content, selected = False }) []
+                                Tree.tree (Flesh { id = 0, targets = targets, content = content, selected = False }) []
 
                     -- Text
                     _ ->
-                        tree (Text (Maybe.withDefault "" text)) []
+                        Tree.tree (Text (Maybe.withDefault "" text)) []
             )
             (field "type" string)
             (maybe (field "name" string))
@@ -84,28 +84,33 @@ fromString jsonString =
     case decodeString (field "elements" decoder) jsonString of
         Ok elements ->
             let
-                tree_ =
-                    tree Root elements
+                tree =
+                    Tree.tree Root elements
 
                 indexedTree =
-                    Tree.indexedMap
-                        (\index element ->
-                            case element of
-                                Bone bone ->
-                                    Bone { bone | id = index }
-
-                                Flesh flesh ->
-                                    Flesh { flesh | id = index }
-
-                                _ ->
-                                    element
-                        )
-                        tree_
+                    applyIndex tree
             in
             Just indexedTree
 
         Err _ ->
             Nothing
+
+
+applyIndex : Tree Element -> Tree Element
+applyIndex tree =
+    Tree.indexedMap
+        (\index element ->
+            case element of
+                Bone bone ->
+                    Bone { bone | id = index }
+
+                Flesh flesh ->
+                    Flesh { flesh | id = index }
+
+                _ ->
+                    element
+        )
+        tree
 
 
 markAlternateHierarchy : Tree.Zipper.Zipper Element -> Tree Element
@@ -183,7 +188,7 @@ removeElement index tree =
         Just newZipper ->
             case Tree.Zipper.removeTree newZipper of
                 Just newZipperAfterRemoval ->
-                    newZipperAfterRemoval |> Tree.Zipper.toTree
+                    newZipperAfterRemoval |> Tree.Zipper.toTree |> applyIndex
 
                 Nothing ->
                     Tree.tree Root []
@@ -211,6 +216,7 @@ addElementBeforeElement index element tree =
             in
             Tree.Zipper.prepend newTree newZipper
                 |> Tree.Zipper.toTree
+                |> applyIndex
 
         Nothing ->
             tree
@@ -230,6 +236,7 @@ addElementAfterElement index element tree =
             in
             Tree.Zipper.append newTree newZipper
                 |> Tree.Zipper.toTree
+                |> applyIndex
 
         Nothing ->
             tree
@@ -258,6 +265,7 @@ addElementInsideElementAsFirstChild index element tree =
             in
             Tree.Zipper.replaceTree replacement newZipper
                 |> Tree.Zipper.toTree
+                |> applyIndex
 
         Nothing ->
             tree
@@ -286,6 +294,7 @@ addElementInsideElementAsLastChild index element tree =
             in
             Tree.Zipper.replaceTree replacement newZipper
                 |> Tree.Zipper.toTree
+                |> applyIndex
 
         Nothing ->
             tree

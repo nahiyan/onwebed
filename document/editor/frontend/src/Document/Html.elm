@@ -1,6 +1,6 @@
 module Document.Html exposing (fromDocumentElement, fromTree)
 
-import Core exposing (Mode(..), Model, Msg(..))
+import Core exposing (Mode, Model, Msg(..))
 import Document.Element exposing (Element(..))
 import Document.Elements.Tree
 import Html exposing (Html, div, input, span, text, textarea)
@@ -9,6 +9,26 @@ import Html.Events exposing (on, onBlur, onFocus, stopPropagationOn, targetValue
 import Json.Decode
 import Tree
 import Tree.Zipper
+
+
+isSelectionModeForBone : Mode -> Bool
+isSelectionModeForBone mode =
+    case mode of
+        Core.Selection type_ _ ->
+            List.member type_ [ Core.Bone, Core.BoneAndFlesh ]
+
+        _ ->
+            False
+
+
+isSelectionModeForFlesh : Mode -> Bool
+isSelectionModeForFlesh mode =
+    case mode of
+        Core.Selection type_ _ ->
+            List.member type_ [ Core.Flesh, Core.BoneAndFlesh ]
+
+        _ ->
+            False
 
 
 fromDocumentElement : Model -> Element -> List (Html Msg) -> Html Msg
@@ -20,14 +40,17 @@ fromDocumentElement model element children =
         Bone { id, descriptor, alternateHierarchy, selected } ->
             let
                 attributes =
-                    case model.mode of
-                        ElementSelectionForRemoval ->
-                            [ stopPropagationOn "click" (Json.Decode.succeed ( RemoveElement id, True ))
-                            , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
-                            ]
+                    if isSelectionModeForBone model.mode then
+                        [ stopPropagationOn
+                            "click"
+                            (Json.Decode.succeed
+                                ( ElementClick id, True )
+                            )
+                        , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
+                        ]
 
-                        _ ->
-                            []
+                    else
+                        []
             in
             div
                 ([ class
@@ -38,7 +61,7 @@ fromDocumentElement model element children =
                             else
                                 ""
                            )
-                        ++ (if selected && not (List.member model.mode [ Default ]) then
+                        ++ (if selected && isSelectionModeForBone model.mode then
                                 " selected"
 
                             else
@@ -74,19 +97,22 @@ fromDocumentElement model element children =
         Flesh { id, targets, content, selected } ->
             let
                 attributes =
-                    case model.mode of
-                        ElementSelectionForRemoval ->
-                            [ stopPropagationOn "click" (Json.Decode.succeed ( RemoveElement id, True ))
-                            , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
-                            ]
+                    if isSelectionModeForFlesh model.mode then
+                        [ stopPropagationOn
+                            "click"
+                            (Json.Decode.succeed
+                                ( ElementClick id, True )
+                            )
+                        , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
+                        ]
 
-                        _ ->
-                            []
+                    else
+                        []
             in
             div
                 ([ class
                     ("flesh"
-                        ++ (if selected && not (List.member model.mode [ Default ]) then
+                        ++ (if selected && isSelectionModeForFlesh model.mode then
                                 " selected"
 
                             else
