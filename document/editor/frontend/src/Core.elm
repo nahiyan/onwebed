@@ -24,11 +24,12 @@ type SelectionType
 type Mode
     = Default
     | Selection SelectionType SelectionPurpose
+    | MarkupEditing
 
 
 type alias Model =
     { document : Document
-    , pageName : String
+    , fileName : String
     , mode : Mode
     , hotkeysEnabled : Bool
     , elementEditingEnabled : Bool
@@ -53,6 +54,6 @@ type Msg
 
 
 type alias FlagType =
-    { pageName : String
+    { fileName : String
     , content : String
     }

@@ -12,7 +12,7 @@ import Rest
 initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
     ( { document = Document.fromString flags.content
-      , pageName = flags.pageName
+      , fileName = flags.fileName
       , mode = Core.Default
       , hotkeysEnabled = True
       , elementEditingEnabled = True

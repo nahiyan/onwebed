@@ -174,7 +174,7 @@ fromString jsonString =
                             )
 
                 body =
-                    (zipper
+                    zipper
                         |> Tree.Zipper.findFromRoot
                             (\element ->
                                 case element of
@@ -184,7 +184,6 @@ fromString jsonString =
                                     _ ->
                                         False
                             )
-                    )
                         |> Maybe.andThen
                             (\bodyZipper ->
                                 let

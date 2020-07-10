@@ -10,6 +10,6 @@ Elm.Main.init({
   node: document.getElementById('documentBody'),
   flags: {
     content: content,
-    pageName: name
+    fileName: name
   }
 })
