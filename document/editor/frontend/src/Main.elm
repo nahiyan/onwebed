@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Browser exposing (element)
+import Browser
 import Core exposing (FlagType, Model, Msg)
 import State exposing (initialize, subscriptions, update)
 import View exposing (view)
@@ -8,7 +8,7 @@ import View exposing (view)
 
 main : Program FlagType Model Msg
 main =
-    Browser.element
+    Browser.document
         { init = initialize
         , view = view
         , update = update

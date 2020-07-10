@@ -85,6 +85,13 @@ fromDocumentElement model element children =
                                     else
                                         ""
                                    )
+                                ++ (case model.mode of
+                                        Core.Selection Core.Flesh _ ->
+                                            " no-selection"
+
+                                        _ ->
+                                            ""
+                                   )
                             )
                         , Html.Attributes.id ("element" ++ String.fromInt id)
                         ]
@@ -148,6 +155,13 @@ fromDocumentElement model element children =
 
                             else
                                 ""
+                           )
+                        ++ (case model.mode of
+                                Core.Selection Core.Bone _ ->
+                                    " no-selection"
+
+                                _ ->
+                                    ""
                            )
                     )
                  , Html.Attributes.id ("element" ++ String.fromInt id)

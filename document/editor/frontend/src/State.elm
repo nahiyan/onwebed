@@ -1,4 +1,4 @@
-module State exposing (initialize, subscriptions, update)
+port module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
 import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
@@ -7,221 +7,263 @@ import Document.Body
 import Document.Element exposing (Element(..))
 import Json.Decode
 import Rest
+import Tree
 
 
-initialize : FlagType -> ( Model, Cmd Msg )
+port overlay : Bool -> Cmd msg
+
+
+port documentToXml : String -> Cmd msg
+
+
+port documentToXmlResult : (String -> msg) -> Sub msg
+
+
+initialize : FlagType -> ( Model, Cmd msg )
 initialize flags =
     ( { document = Document.fromString flags.content
       , fileName = flags.fileName
       , mode = Core.Default
       , hotkeysEnabled = True
       , elementEditingEnabled = True
+      , markup = ""
       }
     , Cmd.none
     )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd msg )
 update message model =
     let
         document =
             model.document
 
-        newModel =
+        body =
             case document.body of
                 Nothing ->
-                    model
+                    Tree.singleton Document.Element.Root
 
-                Just body ->
-                    case message of
-                        SetBoneDescriptor index descriptor ->
-                            let
-                                newBody =
-                                    Document.Body.replaceElement index
-                                        (\element ->
-                                            case element of
-                                                Document.Element.Bone bone ->
-                                                    Document.Element.Bone { bone | descriptor = descriptor }
+                Just justBody ->
+                    justBody
 
-                                                _ ->
-                                                    element
-                                        )
-                                        body
-                            in
-                            { model | document = { document | body = Just newBody } }
+        ( newModel, command ) =
+            case message of
+                InitiateMarkupEditing ->
+                    ( model
+                    , Cmd.batch
+                        [ documentToXml (Document.toJson model.document)
+                        , overlay True
+                        ]
+                    )
 
-                        SetFleshTargets index targets ->
-                            let
-                                newBody =
-                                    Document.Body.replaceElement index
-                                        (\element ->
-                                            case element of
-                                                Document.Element.Flesh flesh ->
-                                                    Document.Element.Flesh { flesh | targets = targets }
+                SetMarkup markup ->
+                    ( { model | markup = markup, mode = Core.MarkupEditing }, Cmd.none )
 
-                                                _ ->
-                                                    element
-                                        )
-                                        body
-                            in
-                            { model | document = { document | body = Just newBody } }
+                EndMarkupEditing ->
+                    ( { model | markup = "", mode = Core.Default }, overlay False )
 
-                        SetFleshContent index content ->
-                            let
-                                newBody =
-                                    Document.Body.replaceElement index
-                                        (\element ->
-                                            case element of
-                                                Document.Element.Flesh flesh ->
-                                                    Document.Element.Flesh { flesh | content = content }
+                SetBoneDescriptor index descriptor ->
+                    let
+                        newBody =
+                            Document.Body.replaceElement index
+                                (\element ->
+                                    case element of
+                                        Document.Element.Bone bone ->
+                                            Document.Element.Bone { bone | descriptor = descriptor }
 
-                                                _ ->
-                                                    element
-                                        )
-                                        body
-                            in
-                            { model | document = { document | body = Just newBody } }
+                                        _ ->
+                                            element
+                                )
+                                body
+                    in
+                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
 
-                        SetMode mode ->
-                            { model | mode = mode }
+                SetFleshTargets index targets ->
+                    let
+                        newBody =
+                            Document.Body.replaceElement index
+                                (\element ->
+                                    case element of
+                                        Document.Element.Flesh flesh ->
+                                            Document.Element.Flesh { flesh | targets = targets }
 
-                        SelectElement id ->
-                            let
-                                newBody =
-                                    Document.Body.mapElements
-                                        (\element ->
-                                            case element of
-                                                Document.Element.Bone bone ->
-                                                    if bone.id == id then
-                                                        Document.Element.Bone { bone | selected = True }
+                                        _ ->
+                                            element
+                                )
+                                body
+                    in
+                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
 
-                                                    else
-                                                        Document.Element.Bone { bone | selected = False }
+                SetFleshContent index content ->
+                    let
+                        newBody =
+                            Document.Body.replaceElement index
+                                (\element ->
+                                    case element of
+                                        Document.Element.Flesh flesh ->
+                                            Document.Element.Flesh { flesh | content = content }
 
-                                                Document.Element.Flesh flesh ->
-                                                    if flesh.id == id then
-                                                        Document.Element.Flesh { flesh | selected = True }
+                                        _ ->
+                                            element
+                                )
+                                body
+                    in
+                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
 
-                                                    else
-                                                        Document.Element.Flesh { flesh | selected = False }
+                SetMode mode ->
+                    ( { model | mode = mode }, Cmd.none )
 
-                                                _ ->
-                                                    element
-                                        )
-                                        body
-                            in
-                            { model | document = { document | body = Just newBody } }
+                SelectElement id ->
+                    let
+                        newBody =
+                            Document.Body.mapElements
+                                (\element ->
+                                    case element of
+                                        Document.Element.Bone bone ->
+                                            if bone.id == id then
+                                                Document.Element.Bone { bone | selected = True }
 
-                        KeyInteraction _ key _ ->
-                            if model.hotkeysEnabled then
-                                case model.mode of
-                                    Core.Default ->
-                                        model
+                                            else
+                                                Document.Element.Bone { bone | selected = False }
+
+                                        Document.Element.Flesh flesh ->
+                                            if flesh.id == id then
+                                                Document.Element.Flesh { flesh | selected = True }
+
+                                            else
+                                                Document.Element.Flesh { flesh | selected = False }
+
+                                        _ ->
+                                            element
+                                )
+                                body
+                    in
+                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
+
+                KeyInteraction _ key _ ->
+                    if model.hotkeysEnabled then
+                        case model.mode of
+                            Core.Default ->
+                                ( model, Cmd.none )
+
+                            _ ->
+                                case key of
+                                    "Escape" ->
+                                        ( { model | mode = Core.Default }, overlay False )
 
                                     _ ->
-                                        case key of
-                                            "Escape" ->
-                                                { model | mode = Core.Default }
+                                        ( model, Cmd.none )
 
-                                            _ ->
-                                                model
+                    else
+                        ( model, Cmd.none )
 
-                            else
-                                model
+                ToggleHotkeysEnabled ->
+                    ( { model | hotkeysEnabled = not model.hotkeysEnabled }, Cmd.none )
 
-                        ToggleHotkeysEnabled ->
-                            { model | hotkeysEnabled = not model.hotkeysEnabled }
+                ElementClick id ->
+                    case model.mode of
+                        Core.Selection type_ purpose ->
+                            case purpose of
+                                Core.Removal ->
+                                    let
+                                        newBody =
+                                            Document.Body.removeElement id body
+                                    in
+                                    ( { model
+                                        | document = { document | body = Just newBody }
+                                        , mode = Core.Default
+                                      }
+                                    , Cmd.none
+                                    )
 
-                        ElementClick id ->
-                            case model.mode of
-                                Core.Selection type_ purpose ->
-                                    case purpose of
-                                        Core.Removal ->
-                                            let
-                                                newBody =
-                                                    Document.Body.removeElement id body
-                                            in
-                                            { model
-                                                | document = { document | body = Just newBody }
-                                                , mode = Core.Default
-                                            }
+                                Core.Addition additionType ->
+                                    case type_ of
+                                        Core.Bone ->
+                                            case additionType of
+                                                Core.Before ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementBeforeElement id Document.Element.emptyBone body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
-                                        Core.Addition additionType ->
-                                            case type_ of
-                                                Core.Bone ->
-                                                    case additionType of
-                                                        Core.Before ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementBeforeElement id Document.Element.emptyBone body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
+                                                Core.After ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementAfterElement id Document.Element.emptyBone body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
-                                                        Core.After ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementAfterElement id Document.Element.emptyBone body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
+                                                Core.InsideFirst ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementInsideElementAsFirstChild id Document.Element.emptyBone body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
-                                                        Core.InsideFirst ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementInsideElementAsFirstChild id Document.Element.emptyBone body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
+                                                Core.InsideLast ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementInsideElementAsLastChild id Document.Element.emptyBone body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
-                                                        Core.InsideLast ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementInsideElementAsLastChild id Document.Element.emptyBone body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
+                                        Core.Flesh ->
+                                            case additionType of
+                                                Core.Before ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementBeforeElement id Document.Element.emptyFlesh body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
-                                                Core.Flesh ->
-                                                    case additionType of
-                                                        Core.Before ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementBeforeElement id Document.Element.emptyFlesh body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
-
-                                                        Core.After ->
-                                                            let
-                                                                newBody =
-                                                                    Document.Body.addElementAfterElement id Document.Element.emptyFlesh body
-                                                            in
-                                                            { model
-                                                                | document = { document | body = Just newBody }
-                                                                , mode = Core.Default
-                                                            }
-
-                                                        _ ->
-                                                            model
+                                                Core.After ->
+                                                    let
+                                                        newBody =
+                                                            Document.Body.addElementAfterElement id Document.Element.emptyFlesh body
+                                                    in
+                                                    ( { model
+                                                        | document = { document | body = Just newBody }
+                                                        , mode = Core.Default
+                                                      }
+                                                    , Cmd.none
+                                                    )
 
                                                 _ ->
-                                                    model
+                                                    ( model, Cmd.none )
 
-                                _ ->
-                                    model
+                                        _ ->
+                                            ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
     in
-    ( newModel, Cmd.none )
+    ( newModel, command )
 
 
 subscriptions : Model -> Sub Msg
@@ -233,4 +275,5 @@ subscriptions _ =
                 Rest.keyDecoder
                 Rest.shiftKeyDecoder
             )
+        , documentToXmlResult SetMarkup
         ]

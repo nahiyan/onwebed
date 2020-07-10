@@ -17,7 +17,7 @@ router.get('/', function (req, res, next) {
       return path.basename(file, path.extname(file))
     })
   res.render('documents/index', {
-    title: 'Onwebed - Pages',
+    title: 'Onwebed - Documents',
     documents: documents
   })
 })
@@ -29,7 +29,6 @@ router.get('/edit/:name', function (req, res) {
     document.content(path.join(sourceDirectory, name + '.od'))
   )
   res.render('documents/edit', {
-    title: 'Onwebed - Pages',
     content: content,
     name: name
   })

@@ -33,6 +33,7 @@ type alias Model =
     , mode : Mode
     , hotkeysEnabled : Bool
     , elementEditingEnabled : Bool
+    , markup : String
     }
 
 
@@ -51,6 +52,9 @@ type Msg
     | KeyInteraction KeyInteractionType String Bool
     | ToggleHotkeysEnabled
     | ElementClick Int
+    | InitiateMarkupEditing
+    | SetMarkup String
+    | EndMarkupEditing
 
 
 type alias FlagType =

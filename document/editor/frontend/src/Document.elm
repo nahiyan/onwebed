@@ -1,9 +1,10 @@
-module Document exposing (Document, fromString)
+module Document exposing (Document, fromString, toJson)
 
 import Dict
 import Document.Body
 import Document.Element exposing (Element)
 import Json.Decode
+import Json.Encode
 import Tree exposing (Tree)
 import Tree.Zipper
 
@@ -197,3 +198,73 @@ fromString jsonString =
 
         Err _ ->
             { name = Nothing, body = Nothing }
+
+
+toJson : Document -> String
+toJson document =
+    let
+        xmlElement =
+            \name attributes children ->
+                [ ( "type", Json.Encode.string "element" )
+                , ( "name", Json.Encode.string name )
+                , ( "elements", Json.Encode.list Json.Encode.object children )
+                ]
+                    ++ (if not (List.isEmpty attributes) then
+                            [ ( "attributes", Json.Encode.object attributes ) ]
+
+                        else
+                            []
+                       )
+
+        xmlTextElement =
+            \text ->
+                [ ( "type", Json.Encode.string "text" )
+                , ( "text", Json.Encode.string text )
+                ]
+
+        headElement =
+            xmlElement "head"
+                []
+                ([]
+                    ++ (case document.name of
+                            Just name ->
+                                [ xmlElement "name" [] [ xmlTextElement name ] ]
+
+                            Nothing ->
+                                []
+                       )
+                )
+
+        bodyElement =
+            case document.body of
+                Nothing ->
+                    []
+
+                Just tree ->
+                    Tree.restructure
+                        (\element -> element)
+                        (\element children ->
+                            case element of
+                                Document.Element.Bone { descriptor } ->
+                                    xmlElement "bone" [ ( "descriptor", Json.Encode.string descriptor ) ] children
+
+                                Document.Element.Flesh { targets, content } ->
+                                    xmlElement "flesh" [ ( "for", Json.Encode.string targets ) ] [ xmlTextElement content ]
+
+                                Document.Element.Root ->
+                                    xmlElement "body" [] children
+
+                                _ ->
+                                    xmlElement "" [] []
+                        )
+                        tree
+
+        documentElement =
+            xmlElement "document" [] [ headElement, bodyElement ]
+
+        root =
+            Json.Encode.object
+                [ ( "elements", Json.Encode.list Json.Encode.object [ documentElement ] )
+                ]
+    in
+    Json.Encode.encode 0 root

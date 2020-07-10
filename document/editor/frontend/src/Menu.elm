@@ -179,7 +179,7 @@ toHtml model =
             , button
                 [ class "btn btn-outline-primary"
                 , attribute "type" "button"
-                , onClick (SetMode Core.MarkupEditing)
+                , onClick Core.InitiateMarkupEditing
                 ]
                 [ span
                     [ class "icon is-small" ]

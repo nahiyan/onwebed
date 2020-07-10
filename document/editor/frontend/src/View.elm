@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Browser
 import Core exposing (Model, Msg)
 import Document.Html
 import Html exposing (Html, button, div, h5, span, text, textarea)
@@ -9,17 +10,17 @@ import Json.Decode
 import Menu
 
 
-markupModal : List (Html Msg)
-markupModal =
+markupModal : String -> List (Html Msg)
+markupModal markup =
     [ div [ class "modal-backdrop fade show" ] []
     , div
         [ class "modal fade show"
         , attribute "role" "dialog"
         , attribute "tabindex" "-1"
-        , onClick (Core.SetMode Core.Default)
+        , onClick Core.EndMarkupEditing
         ]
         [ div
-            [ class "modal-dialog modal-dialog-centered"
+            [ class "modal-dialog modal-dialog-centered modal-lg"
             , attribute "role" "document"
             ]
             [ div
@@ -42,7 +43,7 @@ markupModal =
                         , type_ "button"
                         , stopPropagationOn "click"
                             (Json.Decode.succeed
-                                ( Core.SetMode Core.Default, True )
+                                ( Core.EndMarkupEditing, True )
                             )
                         ]
                         [ span [ attribute "aria-hidden" "true" ]
@@ -51,14 +52,14 @@ markupModal =
                     ]
                 , div [ class "modal-body" ]
                     -- Markup
-                    [ textarea [ class "form-control" ] [] ]
+                    [ textarea [ class "form-control" ] [ text markup ] ]
                 , div [ class "modal-footer" ]
                     -- Save button
                     [ button
                         [ class "btn btn-primary"
                         , type_ "button"
                         ]
-                        [ text "Save changes" ]
+                        [ text "Save Changes" ]
                     ]
                 ]
             ]
@@ -66,11 +67,11 @@ markupModal =
     ]
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div
-        []
-        (List.append
+    { title = "Onwebed - Document Editor"
+    , body =
+        List.append
             [ Menu.toHtml model
             , div
                 [ id "document"
@@ -85,9 +86,9 @@ view model =
                 ]
             ]
             (if model.mode == Core.MarkupEditing then
-                markupModal
+                markupModal model.markup
 
              else
                 []
             )
-        )
+    }
