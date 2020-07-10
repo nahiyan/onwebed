@@ -1,7 +1,7 @@
-module Document.Html exposing (fromDocumentElement, fromTree)
+module Document.Html exposing (fromDocumentBody, fromDocumentElement)
 
 import Core exposing (Mode, Model, Msg(..))
-import Document
+import Document.Body
 import Document.Element exposing (Element(..))
 import Html exposing (Html, div, input, span, text, textarea)
 import Html.Attributes exposing (class, type_, value)
@@ -19,6 +19,36 @@ isSelectionModeForBone mode =
 
         _ ->
             False
+
+
+boneDisabledAttribute : Model -> Html.Attribute Msg
+boneDisabledAttribute model =
+    Html.Attributes.disabled
+        (case model.mode of
+            Core.Selection Core.Bone _ ->
+                True
+
+            Core.Selection Core.BoneAndFlesh _ ->
+                True
+
+            _ ->
+                False
+        )
+
+
+fleshDisabledAttribute : Model -> Html.Attribute Msg
+fleshDisabledAttribute model =
+    Html.Attributes.disabled
+        (case model.mode of
+            Core.Selection Core.Flesh _ ->
+                True
+
+            Core.Selection Core.BoneAndFlesh _ ->
+                True
+
+            _ ->
+                False
+        )
 
 
 isSelectionModeForFlesh : Mode -> Bool
@@ -40,43 +70,43 @@ fromDocumentElement model element children =
         Bone { id, descriptor, alternateHierarchy, selected } ->
             let
                 attributes =
-                    if isSelectionModeForBone model.mode then
-                        [ stopPropagationOn
-                            "click"
-                            (Json.Decode.succeed
-                                ( ElementClick id, True )
-                            )
-                        , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
-                        ]
+                    List.append
+                        [ class
+                            ("bone"
+                                ++ (if alternateHierarchy then
+                                        " alternate"
 
-                    else
-                        []
+                                    else
+                                        ""
+                                   )
+                                ++ (if selected && isSelectionModeForBone model.mode then
+                                        " selected"
+
+                                    else
+                                        ""
+                                   )
+                            )
+                        , Html.Attributes.id ("element" ++ String.fromInt id)
+                        ]
+                        (if isSelectionModeForBone model.mode then
+                            [ stopPropagationOn
+                                "click"
+                                (Json.Decode.succeed
+                                    ( ElementClick id, True )
+                                )
+                            , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
+                            ]
+
+                         else
+                            []
+                        )
             in
             div
-                ([ class
-                    ("bone"
-                        ++ (if alternateHierarchy then
-                                " alternate"
-
-                            else
-                                ""
-                           )
-                        ++ (if selected && isSelectionModeForBone model.mode then
-                                " selected"
-
-                            else
-                                ""
-                           )
-                    )
-                 , Html.Attributes.id ("element" ++ String.fromInt id)
-                 ]
-                    ++ attributes
-                )
+                attributes
                 (div
                     [ class "input-group" ]
                     [ div
-                        [ class "input-group-prepend"
-                        ]
+                        [ class "input-group-prepend" ]
                         [ span [ class "input-group-text" ]
                             [ text "Descriptor" ]
                         ]
@@ -88,6 +118,7 @@ fromDocumentElement model element children =
                             (Json.Decode.map (Core.SetBoneDescriptor id) targetValue)
                         , onFocus ToggleHotkeysEnabled
                         , onBlur ToggleHotkeysEnabled
+                        , boneDisabledAttribute model
                         ]
                         []
                     ]
@@ -138,6 +169,7 @@ fromDocumentElement model element children =
                             (Json.Decode.map (Core.SetFleshTargets id) targetValue)
                         , onFocus ToggleHotkeysEnabled
                         , onBlur ToggleHotkeysEnabled
+                        , fleshDisabledAttribute model
                         ]
                         []
                     ]
@@ -147,6 +179,7 @@ fromDocumentElement model element children =
                         (Json.Decode.map (Core.SetFleshContent id) targetValue)
                     , onFocus ToggleHotkeysEnabled
                     , onBlur ToggleHotkeysEnabled
+                    , fleshDisabledAttribute model
                     ]
                     [ text content ]
                 ]
@@ -157,11 +190,11 @@ fromDocumentElement model element children =
                 []
 
 
-fromTree : Model -> Tree.Tree Element -> Html Msg
-fromTree model tree =
+fromDocumentBody : Model -> Tree.Tree Element -> Html Msg
+fromDocumentBody model tree =
     let
         treeWithMarkedAlternateHierarchy =
-            Document.markAlternateHierarchy
+            Document.Body.markAlternateHierarchy
                 (Tree.Zipper.fromTree tree)
     in
     Tree.restructure (\element -> element) (fromDocumentElement model) treeWithMarkedAlternateHierarchy

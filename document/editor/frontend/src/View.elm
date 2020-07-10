@@ -16,11 +16,11 @@ view model =
             [ id "document"
             , class "container"
             ]
-            [ case model.document of
+            [ case model.document.body of
                 Nothing ->
                     text "Document is blank, add elements to fill it up!"
 
-                Just tree ->
-                    tree |> Document.Html.fromTree model
+                Just body ->
+                    body |> Document.Html.fromDocumentBody model
             ]
         ]

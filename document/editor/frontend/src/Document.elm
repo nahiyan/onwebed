@@ -1,16 +1,38 @@
-module Document exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, fromString, mapElements, markAlternateHierarchy, removeElement, replaceElement)
+module Document exposing (Document, fromString)
 
 import Dict
-import Document.Element exposing (Element(..))
-import Json.Decode exposing (Decoder, decodeString, dict, field, lazy, list, map5, maybe, string)
-import Tree exposing (Tree, label)
+import Document.Body
+import Document.Element exposing (Element)
+import Json.Decode
+import Tree exposing (Tree)
 import Tree.Zipper
 
 
-decoder : Decoder (List (Tree Element))
+type alias Document =
+    { name : Maybe String
+    , body : Maybe (Tree Element)
+    }
+
+
+combineTextElements : Maybe (List (Tree Element)) -> String
+combineTextElements elements =
+    List.foldl
+        (\elementTree acc ->
+            case Tree.label elementTree of
+                Document.Element.Text text_ ->
+                    acc ++ text_
+
+                _ ->
+                    ""
+        )
+        ""
+        (Maybe.withDefault [] elements)
+
+
+decoder : Json.Decode.Decoder (List (Tree Element))
 decoder =
-    list
-        (map5
+    Json.Decode.list
+        (Json.Decode.map5
             (\type_ name elements attributes text ->
                 case type_ of
                     "element" ->
@@ -30,11 +52,20 @@ decoder =
                                                     Just justDescriptor ->
                                                         justDescriptor
                                 in
-                                Tree.tree (Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
+                                Tree.tree (Document.Element.Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
                                     (Maybe.withDefault [] elements)
 
-                            "document_body" ->
-                                Tree.tree Root (Maybe.withDefault [] elements)
+                            "document" ->
+                                Tree.tree Document.Element.Root (Maybe.withDefault [] elements)
+
+                            "name" ->
+                                Tree.tree (Document.Element.Name (combineTextElements elements)) []
+
+                            "head" ->
+                                Tree.tree Document.Element.Head (Maybe.withDefault [] elements)
+
+                            "body" ->
+                                Tree.tree Document.Element.Body (Maybe.withDefault [] elements)
 
                             -- Flesh
                             _ ->
@@ -53,248 +84,117 @@ decoder =
                                                         justTarget
 
                                     content =
-                                        List.foldl
-                                            (\elementTree acc ->
-                                                case label elementTree of
-                                                    Text text_ ->
-                                                        acc ++ text_
-
-                                                    _ ->
-                                                        ""
-                                            )
-                                            ""
-                                            (Maybe.withDefault [] elements)
+                                        combineTextElements elements
                                 in
-                                Tree.tree (Flesh { id = 0, targets = targets, content = content, selected = False }) []
+                                Tree.tree (Document.Element.Flesh { id = 0, targets = targets, content = content, selected = False }) []
 
                     -- Text
                     _ ->
-                        Tree.tree (Text (Maybe.withDefault "" text)) []
+                        Tree.tree (Document.Element.Text (Maybe.withDefault "" text)) []
             )
-            (field "type" string)
-            (maybe (field "name" string))
-            (maybe (field "elements" (lazy (\_ -> decoder))))
-            (maybe (field "attributes" (dict string)))
-            (maybe (field "text" string))
+            (Json.Decode.field "type" Json.Decode.string)
+            (Json.Decode.maybe
+                (Json.Decode.field
+                    "name"
+                    Json.Decode.string
+                )
+            )
+            (Json.Decode.maybe
+                (Json.Decode.field
+                    "elements"
+                    (Json.Decode.lazy (\_ -> decoder))
+                )
+            )
+            (Json.Decode.maybe
+                (Json.Decode.field
+                    "attributes"
+                    (Json.Decode.dict Json.Decode.string)
+                )
+            )
+            (Json.Decode.maybe
+                (Json.Decode.field
+                    "text"
+                    Json.Decode.string
+                )
+            )
         )
 
 
-fromString : String -> Maybe (Tree Element)
+fromString : String -> Document
 fromString jsonString =
-    case decodeString (field "elements" decoder) jsonString of
+    case Json.Decode.decodeString (Json.Decode.field "elements" decoder) jsonString of
         Ok elements ->
             let
-                tree =
-                    Tree.tree Root elements
-
-                indexedTree =
-                    applyIndex tree
-            in
-            Just indexedTree
-
-        Err _ ->
-            Nothing
-
-
-applyIndex : Tree Element -> Tree Element
-applyIndex tree =
-    Tree.indexedMap
-        (\index element ->
-            case element of
-                Bone bone ->
-                    Bone { bone | id = index }
-
-                Flesh flesh ->
-                    Flesh { flesh | id = index }
-
-                _ ->
-                    element
-        )
-        tree
-
-
-markAlternateHierarchy : Tree.Zipper.Zipper Element -> Tree Element
-markAlternateHierarchy zipper =
-    let
-        newZipper =
-            case Tree.Zipper.label zipper of
-                Bone currentBone ->
-                    case Tree.Zipper.parent zipper of
-                        Just parentZipper ->
-                            let
-                                parent =
-                                    parentZipper |> Tree.Zipper.label
-                            in
-                            case parent of
-                                Bone parentBone ->
-                                    zipper |> Tree.Zipper.replaceLabel (Bone { currentBone | alternateHierarchy = not parentBone.alternateHierarchy }) |> Tree.Zipper.forward
-
-                                _ ->
-                                    Tree.Zipper.forward zipper
+                zipper =
+                    case elements of
+                        [ root ] ->
+                            Tree.Zipper.fromTree root
 
                         _ ->
-                            Tree.Zipper.forward zipper
+                            Tree.Zipper.fromTree (Tree.singleton Document.Element.Root)
 
-                _ ->
-                    Tree.Zipper.forward zipper
-    in
-    case newZipper of
-        Nothing ->
-            Tree.Zipper.toTree zipper
+                name =
+                    (zipper
+                        |> Tree.Zipper.findFromRoot
+                            (\element ->
+                                case element of
+                                    Document.Element.Head ->
+                                        True
 
-        Just justNewZipper ->
-            markAlternateHierarchy justNewZipper
+                                    _ ->
+                                        False
+                            )
+                    )
+                        |> Maybe.andThen
+                            (\headZipper ->
+                                let
+                                    maybeNameZipper =
+                                        headZipper
+                                            |> Tree.Zipper.findFromRoot
+                                                (\element ->
+                                                    case element of
+                                                        Document.Element.Name _ ->
+                                                            True
 
+                                                        _ ->
+                                                            False
+                                                )
+                                in
+                                case maybeNameZipper of
+                                    Just justNameZipper ->
+                                        case justNameZipper |> Tree.Zipper.label of
+                                            Document.Element.Name justName ->
+                                                Just justName
 
-checkElementWithIndex : Int -> Element -> Bool
-checkElementWithIndex index element =
-    case element of
-        Bone bone ->
-            bone.id == index
+                                            _ ->
+                                                Nothing
 
-        Flesh flesh ->
-            flesh.id == index
+                                    Nothing ->
+                                        Nothing
+                            )
 
-        _ ->
-            False
+                body =
+                    (zipper
+                        |> Tree.Zipper.findFromRoot
+                            (\element ->
+                                case element of
+                                    Document.Element.Body ->
+                                        True
 
-
-replaceElement : Int -> (Element -> Element) -> Tree Element -> Tree Element
-replaceElement index replace tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            let
-                replacement =
-                    replace (newZipper |> Tree.Zipper.label)
+                                    _ ->
+                                        False
+                            )
+                    )
+                        |> Maybe.andThen
+                            (\bodyZipper ->
+                                let
+                                    bodyChildren =
+                                        bodyZipper |> Tree.Zipper.children
+                                in
+                                Just (Tree.tree Document.Element.Root bodyChildren |> Document.Body.applyIndex)
+                            )
             in
-            Tree.Zipper.replaceLabel replacement newZipper
-                |> Tree.Zipper.toTree
+            { name = name, body = body }
 
-        Nothing ->
-            tree
-
-
-removeElement : Int -> Tree Element -> Tree Element
-removeElement index tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            case Tree.Zipper.removeTree newZipper of
-                Just newZipperAfterRemoval ->
-                    newZipperAfterRemoval |> Tree.Zipper.toTree |> applyIndex
-
-                Nothing ->
-                    Tree.tree Root []
-
-        Nothing ->
-            tree
-
-
-mapElements : (Element -> Element) -> Tree Element -> Tree Element
-mapElements map tree =
-    Tree.map map tree
-
-
-addElementBeforeElement : Int -> Element -> Tree Element -> Tree Element
-addElementBeforeElement index element tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            let
-                newTree =
-                    Tree.tree element []
-            in
-            Tree.Zipper.prepend newTree newZipper
-                |> Tree.Zipper.toTree
-                |> applyIndex
-
-        Nothing ->
-            tree
-
-
-addElementAfterElement : Int -> Element -> Tree Element -> Tree Element
-addElementAfterElement index element tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            let
-                newTree =
-                    Tree.tree element []
-            in
-            Tree.Zipper.append newTree newZipper
-                |> Tree.Zipper.toTree
-                |> applyIndex
-
-        Nothing ->
-            tree
-
-
-addElementInsideElementAsFirstChild : Int -> Element -> Tree Element -> Tree Element
-addElementInsideElementAsFirstChild index element tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            let
-                newTree =
-                    Tree.tree element []
-
-                newChildren =
-                    newTree :: (newZipper |> Tree.Zipper.children)
-
-                currentElement =
-                    newZipper |> Tree.Zipper.label
-
-                replacement =
-                    Tree.tree currentElement newChildren
-            in
-            Tree.Zipper.replaceTree replacement newZipper
-                |> Tree.Zipper.toTree
-                |> applyIndex
-
-        Nothing ->
-            tree
-
-
-addElementInsideElementAsLastChild : Int -> Element -> Tree Element -> Tree Element
-addElementInsideElementAsLastChild index element tree =
-    let
-        zipper =
-            Tree.Zipper.fromTree tree
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
-        Just newZipper ->
-            let
-                newTree =
-                    Tree.tree element []
-
-                newChildren =
-                    List.append (newZipper |> Tree.Zipper.children) [ newTree ]
-
-                currentElement =
-                    newZipper |> Tree.Zipper.label
-
-                replacement =
-                    Tree.tree currentElement newChildren
-            in
-            Tree.Zipper.replaceTree replacement newZipper
-                |> Tree.Zipper.toTree
-                |> applyIndex
-
-        Nothing ->
-            tree
+        Err _ ->
+            { name = Nothing, body = Nothing }

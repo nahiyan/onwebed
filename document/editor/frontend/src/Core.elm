@@ -1,7 +1,6 @@
 module Core exposing (AdditionType(..), FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SelectionPurpose(..), SelectionType(..))
 
-import Document.Element exposing (Element)
-import Tree exposing (Tree)
+import Document exposing (Document)
 
 
 type AdditionType
@@ -28,7 +27,7 @@ type Mode
 
 
 type alias Model =
-    { document : Maybe (Tree Element)
+    { document : Document
     , pageName : String
     , mode : Mode
     , hotkeysEnabled : Bool

@@ -3,6 +3,7 @@ module State exposing (initialize, subscriptions, update)
 import Browser.Events
 import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
 import Document
+import Document.Body
 import Document.Element exposing (Element(..))
 import Json.Decode
 import Rest
@@ -23,17 +24,20 @@ initialize flags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     let
+        document =
+            model.document
+
         newModel =
-            case model.document of
+            case document.body of
                 Nothing ->
                     model
 
-                Just document ->
+                Just body ->
                     case message of
                         SetBoneDescriptor index descriptor ->
                             let
-                                newDocument =
-                                    Document.replaceElement index
+                                newBody =
+                                    Document.Body.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Bone bone ->
@@ -42,14 +46,14 @@ update message model =
                                                 _ ->
                                                     element
                                         )
-                                        document
+                                        body
                             in
-                            { model | document = Just newDocument }
+                            { model | document = { document | body = Just newBody } }
 
                         SetFleshTargets index targets ->
                             let
-                                newDocument =
-                                    Document.replaceElement index
+                                newBody =
+                                    Document.Body.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Flesh flesh ->
@@ -58,14 +62,14 @@ update message model =
                                                 _ ->
                                                     element
                                         )
-                                        document
+                                        body
                             in
-                            { model | document = Just newDocument }
+                            { model | document = { document | body = Just newBody } }
 
                         SetFleshContent index content ->
                             let
-                                newDocument =
-                                    Document.replaceElement index
+                                newBody =
+                                    Document.Body.replaceElement index
                                         (\element ->
                                             case element of
                                                 Document.Element.Flesh flesh ->
@@ -74,17 +78,17 @@ update message model =
                                                 _ ->
                                                     element
                                         )
-                                        document
+                                        body
                             in
-                            { model | document = Just newDocument }
+                            { model | document = { document | body = Just newBody } }
 
                         SetMode mode ->
                             { model | mode = mode }
 
                         SelectElement id ->
                             let
-                                newDocument =
-                                    Document.mapElements
+                                newBody =
+                                    Document.Body.mapElements
                                         (\element ->
                                             case element of
                                                 Document.Element.Bone bone ->
@@ -104,9 +108,9 @@ update message model =
                                                 _ ->
                                                     element
                                         )
-                                        document
+                                        body
                             in
-                            { model | document = Just newDocument }
+                            { model | document = { document | body = Just newBody } }
 
                         KeyInteraction _ key _ ->
                             if model.hotkeysEnabled then
@@ -134,11 +138,11 @@ update message model =
                                     case purpose of
                                         Core.Removal ->
                                             let
-                                                newDocument =
-                                                    Document.removeElement id document
+                                                newBody =
+                                                    Document.Body.removeElement id body
                                             in
                                             { model
-                                                | document = Just newDocument
+                                                | document = { document | body = Just newBody }
                                                 , mode = Core.Default
                                             }
 
@@ -148,41 +152,41 @@ update message model =
                                                     case additionType of
                                                         Core.Before ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementBeforeElement id Document.Element.emptyBone document
+                                                                newBody =
+                                                                    Document.Body.addElementBeforeElement id Document.Element.emptyBone body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 
                                                         Core.After ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementAfterElement id Document.Element.emptyBone document
+                                                                newBody =
+                                                                    Document.Body.addElementAfterElement id Document.Element.emptyBone body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 
                                                         Core.InsideFirst ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementInsideElementAsFirstChild id Document.Element.emptyBone document
+                                                                newBody =
+                                                                    Document.Body.addElementInsideElementAsFirstChild id Document.Element.emptyBone body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 
                                                         Core.InsideLast ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementInsideElementAsLastChild id Document.Element.emptyBone document
+                                                                newBody =
+                                                                    Document.Body.addElementInsideElementAsLastChild id Document.Element.emptyBone body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 
@@ -190,21 +194,21 @@ update message model =
                                                     case additionType of
                                                         Core.Before ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementBeforeElement id Document.Element.emptyFlesh document
+                                                                newBody =
+                                                                    Document.Body.addElementBeforeElement id Document.Element.emptyFlesh body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 
                                                         Core.After ->
                                                             let
-                                                                newDocument =
-                                                                    Document.addElementAfterElement id Document.Element.emptyFlesh document
+                                                                newBody =
+                                                                    Document.Body.addElementAfterElement id Document.Element.emptyFlesh body
                                                             in
                                                             { model
-                                                                | document = Just newDocument
+                                                                | document = { document | body = Just newBody }
                                                                 , mode = Core.Default
                                                             }
 

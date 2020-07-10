@@ -3,13 +3,13 @@ import { Elm } from '../../../frontend/src/Main.elm'
 import '../sass/document_editor.sass'
 import '@fortawesome/fontawesome-free/js/all'
 
-const pageContent = document.getElementById('page-content').value
-const pageName = document.getElementById('page-name').value
+const content = document.getElementById('content').value
+const name = document.getElementById('name').value
 
 Elm.Main.init({
-  node: document.getElementById('content'),
+  node: document.getElementById('documentBody'),
   flags: {
-    content: pageContent,
-    pageName: pageName
+    content: content,
+    pageName: name
   }
 })

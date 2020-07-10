@@ -29,7 +29,7 @@ toHtml model =
                     [ text "Back" ]
                 ]
             , a
-                [ attribute "href" "."
+                [ attribute "href" "/view/"
                 , attribute "target" "__parent"
                 , class "btn btn-outline-secondary"
                 ]
@@ -45,8 +45,6 @@ toHtml model =
                 ]
             , button
                 [ class "btn btn-outline-success"
-
-                -- , onClick Save
                 , attribute "type" "button"
                 ]
                 [ span
@@ -72,7 +70,16 @@ toHtml model =
                     , Html.Attributes.attribute "aria-haspopup" "true"
                     , Html.Attributes.attribute "aria-expanded" "false"
                     ]
-                    [ text "+ Element" ]
+                    [ span
+                        [ class "icon is-small" ]
+                        [ i
+                            [ class "fas fa-plus-circle" ]
+                            []
+                        ]
+                    , span
+                        []
+                        [ text "Element" ]
+                    ]
                 , div
                     [ class "dropdown-menu"
                     , Html.Attributes.attribute "aria-labelledby" "addElement"
@@ -159,15 +166,29 @@ toHtml model =
                 , attribute "type" "button"
                 , onClick (SetMode (Core.Selection Core.BoneAndFlesh Core.Removal))
                 ]
-                [ text "- Element"
+                [ span
+                    [ class "icon is-small" ]
+                    [ i
+                        [ class "fas fa-minus-circle" ]
+                        []
+                    ]
+                , span
+                    []
+                    [ text "Element" ]
                 ]
             , button
                 [ class "btn btn-outline-primary"
-
-                -- , onClick Save
                 , attribute "type" "button"
                 ]
-                [ text "Edit Markup"
+                [ span
+                    [ class "icon is-small" ]
+                    [ i
+                        [ class "fas fa-code" ]
+                        []
+                    ]
+                , span
+                    []
+                    [ text "Edit Markup" ]
                 ]
             ]
     in

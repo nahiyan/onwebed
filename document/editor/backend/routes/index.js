@@ -16,19 +16,21 @@ router.get('/', function (req, res, next) {
     .map(function (file) {
       return path.basename(file, path.extname(file))
     })
-  res.render('pages/index', { title: 'Onwebed - Pages', documents: documents })
+  res.render('documents/index', {
+    title: 'Onwebed - Pages',
+    documents: documents
+  })
 })
 
+// Edit Document
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name
-  const documentBodyChildren = xmlJs
-    .xml2js(document.content(path.join(sourceDirectory, name + '.od')))
-    .elements.filter(function (element) {
-      return element.name === 'document_body'
-    })[0].elements
-  res.render('pages/edit', {
+  const content = xmlJs.xml2js(
+    document.content(path.join(sourceDirectory, name + '.od'))
+  )
+  res.render('documents/edit', {
     title: 'Onwebed - Pages',
-    content: { elements: documentBodyChildren },
+    content: content,
     name: name
   })
 })
