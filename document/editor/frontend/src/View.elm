@@ -71,6 +71,10 @@ view model =
                             [ button
                                 [ class "btn btn-primary"
                                 , type_ "button"
+                                , stopPropagationOn "click"
+                                    (Json.Decode.succeed
+                                        ( Core.ApplyMarkup, True )
+                                    )
                                 ]
                                 [ text "Save Changes" ]
                             ]

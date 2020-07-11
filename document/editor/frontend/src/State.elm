@@ -1,7 +1,7 @@
 port module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
-import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..), SelectionType)
+import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
 import Document
 import Document.Body
 import Document.Element exposing (Element(..))
@@ -16,10 +16,19 @@ port overlay : Bool -> Cmd msg
 port setupMarkupEditor : String -> Cmd msg
 
 
-port documentToXml : String -> Cmd msg
+port documentToMarkup : String -> Cmd msg
 
 
-port documentToXmlResult : (String -> msg) -> Sub msg
+port markupToDocument : String -> Cmd msg
+
+
+port documentToMarkupResult : (String -> msg) -> Sub msg
+
+
+port markupToDocumentResult : (String -> msg) -> Sub msg
+
+
+port updateMarkup : (String -> msg) -> Sub msg
 
 
 initialize : FlagType -> ( Model, Cmd msg )
@@ -52,19 +61,28 @@ update message model =
 
         ( newModel, command ) =
             case message of
+                ApplyMarkup ->
+                    ( model, markupToDocument model.markup )
+
+                RebuildDocument json ->
+                    ( { model | document = Document.fromString json, mode = Core.Default }, overlay False )
+
                 SetFilter selectionType ->
                     ( { model | filter = selectionType }, Cmd.none )
 
-                InitiateMarkupEditing ->
+                PrepareMarkupEditing ->
                     ( model
                     , Cmd.batch
-                        [ documentToXml (Document.toJson model.document)
+                        [ documentToMarkup (Document.toJson model.document)
                         , overlay True
                         ]
                     )
 
-                SetMarkup markup ->
-                    ( { model | mode = Core.MarkupEditing }, setupMarkupEditor markup )
+                StartMarkupEditing markup ->
+                    ( { model | markup = markup, mode = Core.MarkupEditing }, setupMarkupEditor markup )
+
+                UpdateMarkup markup ->
+                    ( { model | markup = markup }, Cmd.none )
 
                 EndMarkupEditing ->
                     ( { model | mode = Core.Default }, overlay False )
@@ -282,5 +300,7 @@ subscriptions _ =
                 Rest.keyDecoder
                 Rest.shiftKeyDecoder
             )
-        , documentToXmlResult SetMarkup
+        , documentToMarkupResult StartMarkupEditing
+        , markupToDocumentResult RebuildDocument
+        , updateMarkup UpdateMarkup
         ]

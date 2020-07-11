@@ -53,10 +53,13 @@ type Msg
     | KeyInteraction KeyInteractionType String Bool
     | ToggleHotkeysEnabled
     | ElementClick Int
-    | InitiateMarkupEditing
-    | SetMarkup String
+    | PrepareMarkupEditing
+    | StartMarkupEditing String
     | EndMarkupEditing
+    | UpdateMarkup String
     | SetFilter SelectionType
+    | ApplyMarkup
+    | RebuildDocument String
 
 
 type alias FlagType =

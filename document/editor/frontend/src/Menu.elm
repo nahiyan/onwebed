@@ -86,7 +86,16 @@ toHtml model =
                     ]
                     [ h6
                         [ class "dropdown-header" ]
-                        [ text "Bone" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-bone" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Bone" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -136,7 +145,16 @@ toHtml model =
                         []
                     , h6
                         [ class "dropdown-header" ]
-                        [ text "Flesh" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-drumstick-bite" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Flesh" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -179,7 +197,7 @@ toHtml model =
             , button
                 [ class "btn btn-outline-primary"
                 , attribute "type" "button"
-                , onClick Core.InitiateMarkupEditing
+                , onClick Core.PrepareMarkupEditing
                 ]
                 [ span
                     [ class "icon is-small" ]
@@ -194,7 +212,7 @@ toHtml model =
             , div [ class "btn-group btn-group-toggle", attribute "data-toggle" "buttons" ]
                 [ label
                     [ class
-                        ("btn btn-secondary"
+                        ("btn btn-outline-primary"
                             ++ (if model.filter == Core.All then
                                     " active"
 
@@ -220,7 +238,7 @@ toHtml model =
                     ]
                 , label
                     [ class
-                        ("btn btn-secondary"
+                        ("btn btn-outline-primary"
                             ++ (if model.filter == Core.Bone then
                                     " active"
 
@@ -246,7 +264,7 @@ toHtml model =
                     ]
                 , label
                     [ class
-                        ("btn btn-secondary"
+                        ("btn btn-outline-primary"
                             ++ (if model.filter == Core.Flesh then
                                     " active"
 
