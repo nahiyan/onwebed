@@ -106,7 +106,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "Before" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-arrow-left" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Before" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -117,7 +126,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "After" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-arrow-right" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "After" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -128,7 +146,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "Inside (First)" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-level-down-alt" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Inside (First)" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -139,7 +166,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "Inside (Last)" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-level-up-alt" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Inside (Last)" ]
+                        ]
                     , div
                         [ class "dropdown-divider" ]
                         []
@@ -165,7 +201,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "Before" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-arrow-left" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "Before" ]
+                        ]
                     , span
                         [ class "dropdown-item"
                         , onClick
@@ -176,7 +221,16 @@ toHtml model =
                                 )
                             )
                         ]
-                        [ text "After" ]
+                        [ span
+                            [ class "icon is-small" ]
+                            [ i
+                                [ class "fas fa-arrow-right" ]
+                                []
+                            ]
+                        , span
+                            []
+                            [ text "After" ]
+                        ]
                     ]
                 ]
             , button
@@ -234,7 +288,15 @@ toHtml model =
                             ]
                         )
                         []
-                    , text "All  "
+                    , span
+                        [ class "icon is-small" ]
+                        [ i
+                            [ class "fas fa-check-double" ]
+                            []
+                        ]
+                    , span
+                        []
+                        [ text "All" ]
                     ]
                 , label
                     [ class
@@ -260,7 +322,15 @@ toHtml model =
                             ]
                         )
                         []
-                    , text "Bone  "
+                    , span
+                        [ class "icon is-small" ]
+                        [ i
+                            [ class "fas fa-bone" ]
+                            []
+                        ]
+                    , span
+                        []
+                        [ text "Bone" ]
                     ]
                 , label
                     [ class
@@ -286,7 +356,15 @@ toHtml model =
                             ]
                         )
                         []
-                    , text "Flesh  "
+                    , span
+                        [ class "icon is-small" ]
+                        [ i
+                            [ class "fas fa-drumstick-bite" ]
+                            []
+                        ]
+                    , span
+                        []
+                        [ text "Flesh" ]
                     ]
                 ]
             ]
