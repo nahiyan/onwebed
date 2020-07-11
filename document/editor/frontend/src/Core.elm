@@ -18,7 +18,7 @@ type SelectionPurpose
 type SelectionType
     = Bone
     | Flesh
-    | BoneAndFlesh
+    | All
 
 
 type Mode
@@ -34,6 +34,7 @@ type alias Model =
     , hotkeysEnabled : Bool
     , elementEditingEnabled : Bool
     , markup : String
+    , filter : SelectionType
     }
 
 
@@ -55,6 +56,7 @@ type Msg
     | InitiateMarkupEditing
     | SetMarkup String
     | EndMarkupEditing
+    | SetFilter SelectionType
 
 
 type alias FlagType =

@@ -15,7 +15,7 @@ isSelectionModeForBone : Mode -> Bool
 isSelectionModeForBone mode =
     case mode of
         Core.Selection type_ _ ->
-            List.member type_ [ Core.Bone, Core.BoneAndFlesh ]
+            List.member type_ [ Core.Bone, Core.All ]
 
         _ ->
             False
@@ -28,7 +28,7 @@ boneDisabledAttribute model =
             Core.Selection Core.Bone _ ->
                 True
 
-            Core.Selection Core.BoneAndFlesh _ ->
+            Core.Selection Core.All _ ->
                 True
 
             _ ->
@@ -43,7 +43,7 @@ fleshDisabledAttribute model =
             Core.Selection Core.Flesh _ ->
                 True
 
-            Core.Selection Core.BoneAndFlesh _ ->
+            Core.Selection Core.All _ ->
                 True
 
             _ ->
@@ -55,7 +55,7 @@ isSelectionModeForFlesh : Mode -> Bool
 isSelectionModeForFlesh mode =
     case mode of
         Core.Selection type_ _ ->
-            List.member type_ [ Core.Flesh, Core.BoneAndFlesh ]
+            List.member type_ [ Core.Flesh, Core.All ]
 
         _ ->
             False
@@ -91,6 +91,12 @@ fromDocumentElement model element children =
 
                                         _ ->
                                             ""
+                                   )
+                                ++ (if model.filter == Core.Flesh then
+                                        " hide"
+
+                                    else
+                                        ""
                                    )
                             )
                         , Html.Attributes.id ("element" ++ String.fromInt id)
@@ -162,6 +168,12 @@ fromDocumentElement model element children =
 
                                 _ ->
                                     ""
+                           )
+                        ++ (if model.filter == Core.Bone then
+                                " hide"
+
+                            else
+                                ""
                            )
                     )
                  , Html.Attributes.id ("element" ++ String.fromInt id)

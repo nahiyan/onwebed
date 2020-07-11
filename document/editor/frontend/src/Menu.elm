@@ -1,8 +1,8 @@
 module Menu exposing (toHtml)
 
 import Core exposing (Model, Msg(..))
-import Html exposing (Html, a, button, div, h6, i, nav, span, text)
-import Html.Attributes exposing (attribute, class, href, id)
+import Html exposing (Html, a, button, div, h6, i, input, label, nav, span, text)
+import Html.Attributes exposing (attribute, class, href, id, type_)
 import Html.Events exposing (onClick)
 
 
@@ -29,7 +29,7 @@ toHtml model =
                     [ text "Back" ]
                 ]
             , a
-                [ attribute "href" "/view/"
+                [ attribute "href" ("/view/" ++ model.fileName)
                 , attribute "target" "__parent"
                 , class "btn btn-outline-secondary"
                 ]
@@ -164,7 +164,7 @@ toHtml model =
             , button
                 [ class "btn btn-outline-danger"
                 , attribute "type" "button"
-                , onClick (SetMode (Core.Selection Core.BoneAndFlesh Core.Removal))
+                , onClick (SetMode (Core.Selection Core.All Core.Removal))
                 ]
                 [ span
                     [ class "icon is-small" ]
@@ -190,6 +190,86 @@ toHtml model =
                 , span
                     []
                     [ text "Edit Markup" ]
+                ]
+            , div [ class "btn-group btn-group-toggle", attribute "data-toggle" "buttons" ]
+                [ label
+                    [ class
+                        ("btn btn-secondary"
+                            ++ (if model.filter == Core.All then
+                                    " active"
+
+                                else
+                                    ""
+                               )
+                        )
+                    ]
+                    [ input
+                        (List.append
+                            (if model.filter == Core.All then
+                                [ attribute "checked" "" ]
+
+                             else
+                                []
+                            )
+                            [ type_ "radio"
+                            , onClick (Core.SetFilter Core.All)
+                            ]
+                        )
+                        []
+                    , text "All  "
+                    ]
+                , label
+                    [ class
+                        ("btn btn-secondary"
+                            ++ (if model.filter == Core.Bone then
+                                    " active"
+
+                                else
+                                    ""
+                               )
+                        )
+                    ]
+                    [ input
+                        (List.append
+                            (if model.filter == Core.Bone then
+                                [ attribute "checked" "" ]
+
+                             else
+                                []
+                            )
+                            [ type_ "radio"
+                            , onClick (Core.SetFilter Core.Bone)
+                            ]
+                        )
+                        []
+                    , text "Bone  "
+                    ]
+                , label
+                    [ class
+                        ("btn btn-secondary"
+                            ++ (if model.filter == Core.Flesh then
+                                    " active"
+
+                                else
+                                    ""
+                               )
+                        )
+                    ]
+                    [ input
+                        (List.append
+                            (if model.filter == Core.Flesh then
+                                [ attribute "checked" "" ]
+
+                             else
+                                []
+                            )
+                            [ type_ "radio"
+                            , onClick (Core.SetFilter Core.Flesh)
+                            ]
+                        )
+                        []
+                    , text "Flesh  "
+                    ]
                 ]
             ]
     in

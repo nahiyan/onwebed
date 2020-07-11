@@ -1,7 +1,7 @@
 port module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
-import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
+import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..), SelectionType)
 import Document
 import Document.Body
 import Document.Element exposing (Element(..))
@@ -11,6 +11,9 @@ import Tree
 
 
 port overlay : Bool -> Cmd msg
+
+
+port setupMarkupEditor : String -> Cmd msg
 
 
 port documentToXml : String -> Cmd msg
@@ -27,6 +30,7 @@ initialize flags =
       , hotkeysEnabled = True
       , elementEditingEnabled = True
       , markup = ""
+      , filter = Core.All
       }
     , Cmd.none
     )
@@ -48,6 +52,9 @@ update message model =
 
         ( newModel, command ) =
             case message of
+                SetFilter selectionType ->
+                    ( { model | filter = selectionType }, Cmd.none )
+
                 InitiateMarkupEditing ->
                     ( model
                     , Cmd.batch
@@ -57,10 +64,10 @@ update message model =
                     )
 
                 SetMarkup markup ->
-                    ( { model | markup = markup, mode = Core.MarkupEditing }, Cmd.none )
+                    ( { model | mode = Core.MarkupEditing }, setupMarkupEditor markup )
 
                 EndMarkupEditing ->
-                    ( { model | markup = "", mode = Core.Default }, overlay False )
+                    ( { model | mode = Core.Default }, overlay False )
 
                 SetBoneDescriptor index descriptor ->
                     let
