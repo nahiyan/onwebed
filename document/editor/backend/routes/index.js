@@ -7,6 +7,7 @@ const fs = require('fs')
 const pretty = require('pretty')
 
 const sourceDirectory = path.resolve('../../../site')
+const destinationDirectory = path.resolve('../../../build')
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -44,6 +45,17 @@ router.post('/save/:name', function (req, res) {
   fs.writeFileSync(path.join(sourceDirectory, name + '.od'), markup)
 
   res.send('success')
+})
+
+// View Document
+router.get('/view/:name', function (req, res) {
+  const name = req.params.name
+  const content = fs.readFileSync(
+    path.join(destinationDirectory, name + '.od' + '.html')
+  )
+
+  res.set('Content-Type', 'text/html')
+  res.end(content)
 })
 
 module.exports = router

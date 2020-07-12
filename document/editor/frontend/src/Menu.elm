@@ -413,27 +413,31 @@ toHtml model =
             [ class "container"
             ]
             (case model.mode of
-                Core.Selection _ Core.Removal ->
-                    [ div []
-                        [ text "Select an element which you want to remove." ]
-                    ]
+                Core.Selection _ _ ->
+                    [ div
+                        []
+                        [ case model.mode of
+                            Core.Selection _ Core.Removal ->
+                                text "Select an element which you want to remove."
 
-                Core.Selection _ (Core.Addition additionType) ->
-                    [ div []
-                        [ text
-                            (case additionType of
-                                Core.Before ->
-                                    "Select an element before which you want to add a new element."
+                            Core.Selection _ (Core.Addition additionType) ->
+                                text
+                                    (case additionType of
+                                        Core.Before ->
+                                            "Select an element before which you want to add a new element."
 
-                                Core.After ->
-                                    "Select an element after which you want to add a new element."
+                                        Core.After ->
+                                            "Select an element after which you want to add a new element."
 
-                                Core.InsideFirst ->
-                                    "Select an element inside which you want to add a new element as its first child."
+                                        Core.InsideFirst ->
+                                            "Select an element inside which you want to add a new element as its first child."
 
-                                Core.InsideLast ->
-                                    "Select an element inside which you want to add a new element as its last child."
-                            )
+                                        Core.InsideLast ->
+                                            "Select an element inside which you want to add a new element as its last child."
+                                    )
+
+                            _ ->
+                                text ""
                         ]
                     ]
 

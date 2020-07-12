@@ -3,8 +3,8 @@ module Document.Html exposing (fromDocumentBody, fromDocumentElement)
 import Core exposing (Mode, Model, Msg(..))
 import Document.Body
 import Document.Element exposing (Element(..))
-import Html exposing (Html, div, input, span, text, textarea)
-import Html.Attributes exposing (class, type_, value)
+import Html exposing (Html, div, i, input, span, text, textarea)
+import Html.Attributes exposing (class, id, type_, value)
 import Html.Events exposing (on, onBlur, onFocus, stopPropagationOn, targetValue)
 import Json.Decode
 import Tree
@@ -61,12 +61,9 @@ isSelectionModeForFlesh mode =
             False
 
 
-fromDocumentElement : Model -> Element -> List (Html Msg) -> Html Msg
-fromDocumentElement model element children =
-    case element of
-        Root ->
-            div [ Html.Attributes.id "elements" ] children
-
+fromBone : Element -> List (Html Msg) -> Model -> Html Msg
+fromBone bone children model =
+    case bone of
         Bone { id, descriptor, alternateHierarchy, selected, babyId } ->
             let
                 attributes =
@@ -128,7 +125,16 @@ fromDocumentElement model element children =
                     [ div
                         [ class "input-group-prepend" ]
                         [ span [ class "input-group-text" ]
-                            [ text "Descriptor" ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-book mr-2" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Descriptor" ]
+                            ]
                         ]
                     , input
                         [ type_ "text"
@@ -145,61 +151,79 @@ fromDocumentElement model element children =
                     :: children
                 )
 
+        _ ->
+            div [] []
+
+
+fromFlesh : Element -> Model -> Html Msg
+fromFlesh flesh model =
+    case flesh of
         Flesh { id, targets, content, selected, babyId } ->
             let
                 attributes =
-                    if isSelectionModeForFlesh model.mode then
-                        [ stopPropagationOn
-                            "click"
-                            (Json.Decode.succeed
-                                ( ElementClick id, True )
-                            )
-                        , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
-                        ]
+                    List.append
+                        [ class
+                            ("flesh"
+                                ++ (if selected && isSelectionModeForFlesh model.mode then
+                                        " selected"
 
-                    else
-                        []
+                                    else
+                                        ""
+                                   )
+                                ++ (case model.mode of
+                                        Core.Selection Core.Bone _ ->
+                                            " no-selection"
+
+                                        _ ->
+                                            ""
+                                   )
+                                ++ (if model.filter == Core.Bone then
+                                        " hide"
+
+                                    else
+                                        ""
+                                   )
+                                ++ (case babyId of
+                                        Just _ ->
+                                            " baby"
+
+                                        Nothing ->
+                                            ""
+                                   )
+                            )
+                        , Html.Attributes.id ("element" ++ String.fromInt id)
+                        ]
+                        (if isSelectionModeForFlesh model.mode then
+                            [ stopPropagationOn
+                                "click"
+                                (Json.Decode.succeed
+                                    ( ElementClick id, True )
+                                )
+                            , stopPropagationOn "mousemove" (Json.Decode.succeed ( SelectElement id, True ))
+                            ]
+
+                         else
+                            []
+                        )
             in
             div
-                ([ class
-                    ("flesh"
-                        ++ (if selected && isSelectionModeForFlesh model.mode then
-                                " selected"
-
-                            else
-                                ""
-                           )
-                        ++ (case model.mode of
-                                Core.Selection Core.Bone _ ->
-                                    " no-selection"
-
-                                _ ->
-                                    ""
-                           )
-                        ++ (if model.filter == Core.Bone then
-                                " hide"
-
-                            else
-                                ""
-                           )
-                        ++ (case babyId of
-                                Just _ ->
-                                    " baby"
-
-                                Nothing ->
-                                    ""
-                           )
-                    )
-                 , Html.Attributes.id ("element" ++ String.fromInt id)
-                 ]
-                    ++ attributes
-                )
+                attributes
                 [ div
                     [ class "input-group" ]
                     [ div
                         [ class "input-group-prepend" ]
-                        [ span [ class "input-group-text" ]
-                            [ text "For" ]
+                        [ span
+                            [ class "input-group-text" ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-bullseye mr-2" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Targets" ]
+                            ]
                         ]
                     , input
                         [ type_ "text"
@@ -225,9 +249,23 @@ fromDocumentElement model element children =
                 ]
 
         _ ->
-            div
-                []
-                []
+            div [] []
+
+
+fromDocumentElement : Model -> Element -> List (Html Msg) -> Html Msg
+fromDocumentElement model element children =
+    case element of
+        Root ->
+            div [ id "elements" ] children
+
+        Bone bone ->
+            fromBone (Bone bone) children model
+
+        Flesh flesh ->
+            fromFlesh (Flesh flesh) model
+
+        _ ->
+            div [] []
 
 
 fromDocumentBody : Model -> Tree.Tree Element -> Html Msg

@@ -86,8 +86,8 @@ update message model =
                   }
                 , Cmd.batch
                     [ Delay.after
-                        2
-                        Delay.Second
+                        2500
+                        Delay.Millisecond
                         (ExpireBabyElement (Maybe.withDefault 0 model.nextBabyId))
                     , generateNextBabyId
                     ]
