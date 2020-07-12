@@ -67,7 +67,7 @@ fromDocumentElement model element children =
         Root ->
             div [ Html.Attributes.id "elements" ] children
 
-        Bone { id, descriptor, alternateHierarchy, selected } ->
+        Bone { id, descriptor, alternateHierarchy, selected, babyId } ->
             let
                 attributes =
                     List.append
@@ -97,6 +97,13 @@ fromDocumentElement model element children =
 
                                     else
                                         ""
+                                   )
+                                ++ (case babyId of
+                                        Just _ ->
+                                            " baby"
+
+                                        Nothing ->
+                                            ""
                                    )
                             )
                         , Html.Attributes.id ("element" ++ String.fromInt id)
@@ -138,7 +145,7 @@ fromDocumentElement model element children =
                     :: children
                 )
 
-        Flesh { id, targets, content, selected } ->
+        Flesh { id, targets, content, selected, babyId } ->
             let
                 attributes =
                     if isSelectionModeForFlesh model.mode then
@@ -174,6 +181,13 @@ fromDocumentElement model element children =
 
                             else
                                 ""
+                           )
+                        ++ (case babyId of
+                                Just _ ->
+                                    " baby"
+
+                                Nothing ->
+                                    ""
                            )
                     )
                  , Html.Attributes.id ("element" ++ String.fromInt id)

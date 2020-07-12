@@ -53,7 +53,7 @@ decoder =
                                                     Just justDescriptor ->
                                                         justDescriptor
                                 in
-                                Tree.tree (Document.Element.Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False })
+                                Tree.tree (Document.Element.Bone { id = 0, descriptor = descriptor, alternateHierarchy = False, selected = False, babyId = Nothing })
                                     (Maybe.withDefault [] elements)
 
                             "document" ->
@@ -87,7 +87,7 @@ decoder =
                                     content =
                                         combineTextElements elements
                                 in
-                                Tree.tree (Document.Element.Flesh { id = 0, targets = targets, content = content, selected = False }) []
+                                Tree.tree (Document.Element.Flesh { id = 0, targets = targets, content = content, selected = False, babyId = Nothing }) []
 
                     -- Text
                     _ ->

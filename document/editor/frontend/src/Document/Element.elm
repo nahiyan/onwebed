@@ -2,8 +2,8 @@ module Document.Element exposing (Element(..), emptyBone, emptyFlesh)
 
 
 type Element
-    = Bone { id : Int, descriptor : String, alternateHierarchy : Bool, selected : Bool }
-    | Flesh { id : Int, targets : String, content : String, selected : Bool }
+    = Bone { id : Int, descriptor : String, alternateHierarchy : Bool, selected : Bool, babyId : Maybe Int }
+    | Flesh { id : Int, targets : String, content : String, selected : Bool, babyId : Maybe Int }
     | Text String
     | Body
     | Head
@@ -11,11 +11,11 @@ type Element
     | Root
 
 
-emptyBone : Element
-emptyBone =
-    Bone { id = 0, descriptor = "", alternateHierarchy = False, selected = False }
+emptyBone : Maybe Int -> Element
+emptyBone babyId =
+    Bone { id = 0, descriptor = "", alternateHierarchy = False, selected = False, babyId = babyId }
 
 
-emptyFlesh : Element
-emptyFlesh =
-    Flesh { id = 0, targets = "", content = "", selected = False }
+emptyFlesh : Maybe Int -> Element
+emptyFlesh babyId =
+    Flesh { id = 0, targets = "", content = "", selected = False, babyId = babyId }

@@ -1,4 +1,4 @@
-module Document.Body exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, applyIndex, mapElements, markAlternateHierarchy, removeElement, replaceElement)
+module Document.Body exposing (addElementAfterElement, addElementBeforeElement, addElementInsideElementAsFirstChild, addElementInsideElementAsLastChild, applyIndex, expireBabyElement, mapElements, markAlternateHierarchy, removeElement, replaceElement)
 
 import Document.Element exposing (Element(..))
 import Tree exposing (Tree)
@@ -68,6 +68,19 @@ checkElementWithIndex index element =
             False
 
 
+checkElementWithBabyId : Int -> Element -> Bool
+checkElementWithBabyId id element =
+    case element of
+        Bone bone ->
+            bone.babyId == Just id
+
+        Flesh flesh ->
+            flesh.babyId == Just id
+
+        _ ->
+            False
+
+
 replaceElement : Int -> (Element -> Element) -> Tree Element -> Tree Element
 replaceElement index replace tree =
     let
@@ -81,6 +94,33 @@ replaceElement index replace tree =
                     replace (newZipper |> Tree.Zipper.label)
             in
             Tree.Zipper.replaceLabel replacement newZipper
+                |> Tree.Zipper.toTree
+
+        Nothing ->
+            tree
+
+
+expireBabyElement : Int -> Tree Element -> Tree Element
+expireBabyElement id tree =
+    let
+        zipper =
+            Tree.Zipper.fromTree tree
+
+        replace =
+            \element ->
+                case element of
+                    Bone bone ->
+                        Bone { bone | babyId = Nothing }
+
+                    Flesh flesh ->
+                        Flesh { flesh | babyId = Nothing }
+
+                    _ ->
+                        element
+    in
+    case Tree.Zipper.findFromRoot (checkElementWithBabyId id) zipper of
+        Just newZipper ->
+            Tree.Zipper.replaceLabel (newZipper |> Tree.Zipper.label |> replace) newZipper
                 |> Tree.Zipper.toTree
 
         Nothing ->

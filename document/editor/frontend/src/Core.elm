@@ -35,6 +35,7 @@ type alias Model =
     , elementEditingEnabled : Bool
     , markup : String
     , filter : SelectionType
+    , nextBabyId : Maybe Int
     }
 
 
@@ -60,6 +61,8 @@ type Msg
     | SetFilter SelectionType
     | ApplyMarkup
     | RebuildDocument String
+    | ExpireBabyElement Int
+    | SetNextBabyId Int
 
 
 type alias FlagType =

@@ -2,15 +2,25 @@ port module State exposing (initialize, subscriptions, update)
 
 import Browser.Events
 import Core exposing (FlagType, KeyInteractionType(..), Model, Msg(..))
+import Delay
 import Document
 import Document.Body
 import Document.Element exposing (Element(..))
 import Json.Decode
+import Random
 import Rest
 import Tree
 
 
+
+-- Overlay for modals
+
+
 port overlay : Bool -> Cmd msg
+
+
+
+-- Markup editing
 
 
 port setupMarkupEditor : String -> Cmd msg
@@ -31,7 +41,12 @@ port markupToDocumentResult : (String -> msg) -> Sub msg
 port updateMarkup : (String -> msg) -> Sub msg
 
 
-initialize : FlagType -> ( Model, Cmd msg )
+generateNextBabyId : Cmd Msg
+generateNextBabyId =
+    Random.generate SetNextBabyId (Random.int Random.minInt Random.maxInt)
+
+
+initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
     ( { document = Document.fromString flags.content
       , fileName = flags.fileName
@@ -40,12 +55,13 @@ initialize flags =
       , elementEditingEnabled = True
       , markup = ""
       , filter = Core.All
+      , nextBabyId = Nothing
       }
-    , Cmd.none
+    , generateNextBabyId
     )
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     let
         document =
@@ -59,8 +75,27 @@ update message model =
                 Just justBody ->
                     justBody
 
+        postNewElementCommands =
+            Cmd.batch
+                [ Delay.after
+                    2
+                    Delay.Second
+                    (ExpireBabyElement (Maybe.withDefault 0 model.nextBabyId))
+                , generateNextBabyId
+                ]
+
         ( newModel, command ) =
             case message of
+                SetNextBabyId id ->
+                    ( { model | nextBabyId = Just id }, Cmd.none )
+
+                ExpireBabyElement id ->
+                    let
+                        newBody =
+                            Document.Body.expireBabyElement id body
+                    in
+                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
+
                 ApplyMarkup ->
                     ( model, markupToDocument model.markup )
 
@@ -208,49 +243,49 @@ update message model =
                                                 Core.Before ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementBeforeElement id Document.Element.emptyBone body
+                                                            Document.Body.addElementBeforeElement id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                                 Core.After ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementAfterElement id Document.Element.emptyBone body
+                                                            Document.Body.addElementAfterElement id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                                 Core.InsideFirst ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementInsideElementAsFirstChild id Document.Element.emptyBone body
+                                                            Document.Body.addElementInsideElementAsFirstChild id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                                 Core.InsideLast ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementInsideElementAsLastChild id Document.Element.emptyBone body
+                                                            Document.Body.addElementInsideElementAsLastChild id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                         Core.Flesh ->
@@ -258,25 +293,25 @@ update message model =
                                                 Core.Before ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementBeforeElement id Document.Element.emptyFlesh body
+                                                            Document.Body.addElementBeforeElement id (Document.Element.emptyFlesh model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                                 Core.After ->
                                                     let
                                                         newBody =
-                                                            Document.Body.addElementAfterElement id Document.Element.emptyFlesh body
+                                                            Document.Body.addElementAfterElement id (Document.Element.emptyFlesh model.nextBabyId) body
                                                     in
                                                     ( { model
                                                         | document = { document | body = Just newBody }
                                                         , mode = Core.Default
                                                       }
-                                                    , Cmd.none
+                                                    , postNewElementCommands
                                                     )
 
                                                 _ ->

@@ -3,7 +3,7 @@ module View exposing (view)
 import Browser
 import Core exposing (Model, Msg)
 import Document.Html
-import Html exposing (button, div, h5, span, text)
+import Html exposing (button, div, h5, i, span, text)
 import Html.Attributes exposing (attribute, class, id, type_)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode
@@ -76,7 +76,16 @@ view model =
                                         ( Core.ApplyMarkup, True )
                                     )
                                 ]
-                                [ text "Save Changes" ]
+                                [ span
+                                    [ class "icon is-small" ]
+                                    [ i
+                                        [ class "fas fa-save" ]
+                                        []
+                                    ]
+                                , span
+                                    []
+                                    [ text " Save Changes" ]
+                                ]
                             ]
                         ]
                     ]
