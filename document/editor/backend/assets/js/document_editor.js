@@ -1,7 +1,7 @@
 import './index.js'
 import { Elm } from '../../../frontend/src/Main.elm'
 import '../sass/document_editor.sass'
-import '@fortawesome/fontawesome-free/js/all'
+import '@fortawesome/fontawesome-free/css/all'
 import { json2xml, xml2json } from 'xml-js'
 import ace from 'ace-builds/src-noconflict/ace'
 const pretty = require('pretty')

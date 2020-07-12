@@ -1,4 +1,4 @@
-module Document exposing (Document, fromString, toJson)
+module Document exposing (Document, elementsCount, fromString, isEmpty, toJson)
 
 import Dict
 import Document.Body
@@ -268,3 +268,40 @@ toJson document =
                 ]
     in
     Json.Encode.encode 0 root
+
+
+isEmpty : Document -> Bool
+isEmpty document =
+    case document.body of
+        Just body ->
+            let
+                zipper =
+                    Tree.Zipper.fromTree body
+            in
+            List.isEmpty (zipper |> Tree.Zipper.children)
+
+        Nothing ->
+            False
+
+
+elementsCount : Document -> { bone : Int, flesh : Int }
+elementsCount document =
+    case document.body of
+        Just body ->
+            Tree.foldl
+                (\element acc ->
+                    case element of
+                        Document.Element.Bone _ ->
+                            { acc | bone = acc.bone + 1 }
+
+                        Document.Element.Flesh _ ->
+                            { acc | flesh = acc.flesh + 1 }
+
+                        _ ->
+                            acc
+                )
+                { bone = 0, flesh = 0 }
+                body
+
+        Nothing ->
+            { bone = 0, flesh = 0 }

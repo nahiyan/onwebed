@@ -73,6 +73,8 @@ type Msg
     | SetNextBabyId Int
     | SaveDocument
     | SaveDocumentResult (Result Http.Error String)
+    | AddBoneAtStart
+    | AddFleshAtEnd
 
 
 type alias FlagType =

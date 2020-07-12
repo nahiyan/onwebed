@@ -2,6 +2,7 @@ module View exposing (view)
 
 import Browser
 import Core exposing (Model, Msg)
+import Document
 import Document.Html
 import Html exposing (button, div, h5, i, span, text)
 import Html.Attributes exposing (attribute, class, id, type_)
@@ -105,7 +106,11 @@ view model =
                         text "Document is blank, add elements to fill it up!"
 
                     Just body ->
-                        body |> Document.Html.fromDocumentBody model
+                        if Document.isEmpty model.document then
+                            text "Document is blank, add elements to fill it up!"
+
+                        else
+                            body |> Document.Html.fromDocumentBody model
                 ]
             ]
             markupModal

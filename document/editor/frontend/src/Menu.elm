@@ -1,6 +1,7 @@
 module Menu exposing (toHtml)
 
 import Core exposing (Model, Msg(..))
+import Document
 import Html exposing (Html, a, button, div, h6, i, input, label, nav, span, text)
 import Html.Attributes exposing (attribute, class, href, id, type_)
 import Html.Events exposing (onClick)
@@ -92,8 +93,198 @@ toHtml model =
                 saveButtonContent
             ]
 
-        menuBody =
-            [ div
+        addElementDropdownButton =
+            let
+                elementsCount =
+                    Document.elementsCount model.document
+
+                boneAdditionOptions =
+                    if elementsCount.bone > 0 then
+                        [ h6
+                            [ class "dropdown-header" ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-bone" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Bone" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Bone
+                                        (Core.Addition Core.Before)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-arrow-left" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Before" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Bone
+                                        (Core.Addition Core.After)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-arrow-right" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "After" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Bone
+                                        (Core.Addition Core.InsideFirst)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-level-down-alt" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Inside (First)" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Bone
+                                        (Core.Addition Core.InsideLast)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-level-up-alt" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Inside (Last)" ]
+                            ]
+                        ]
+
+                    else
+                        [ span
+                            [ class "dropdown-item"
+                            , onClick AddBoneAtStart
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-bone" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Bone" ]
+                            ]
+                        ]
+
+                fleshAdditionOptions =
+                    if elementsCount.flesh > 0 then
+                        [ h6
+                            [ class "dropdown-header" ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-drumstick-bite" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Flesh" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Flesh
+                                        (Core.Addition Core.Before)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-arrow-left" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Before" ]
+                            ]
+                        , span
+                            [ class "dropdown-item"
+                            , onClick
+                                (SetMode
+                                    (Core.Selection
+                                        Core.Flesh
+                                        (Core.Addition Core.After)
+                                    )
+                                )
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-arrow-right" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "After" ]
+                            ]
+                        ]
+
+                    else
+                        [ span
+                            [ class "dropdown-item"
+                            , onClick AddFleshAtEnd
+                            ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-drumstick-bite" ]
+                                    []
+                                ]
+                            , span
+                                []
+                                [ text "Flesh" ]
+                            ]
+                        ]
+            in
+            div
                 [ class "dropdown" ]
                 [ button
                     [ class "btn btn-outline-success dropdown-toggle"
@@ -117,155 +308,25 @@ toHtml model =
                     [ class "dropdown-menu"
                     , Html.Attributes.attribute "aria-labelledby" "addElement"
                     ]
-                    [ h6
-                        [ class "dropdown-header" ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-bone" ]
+                    (List.append
+                        (List.append
+                            boneAdditionOptions
+                            (if elementsCount.bone > 0 || elementsCount.flesh > 0 then
+                                [ div
+                                    [ class "dropdown-divider" ]
+                                    []
+                                ]
+
+                             else
                                 []
-                            ]
-                        , span
-                            []
-                            [ text "Bone" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Bone
-                                    (Core.Addition Core.Before)
-                                )
                             )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-arrow-left" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "Before" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Bone
-                                    (Core.Addition Core.After)
-                                )
-                            )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-arrow-right" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "After" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Bone
-                                    (Core.Addition Core.InsideFirst)
-                                )
-                            )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-level-down-alt" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "Inside (First)" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Bone
-                                    (Core.Addition Core.InsideLast)
-                                )
-                            )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-level-up-alt" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "Inside (Last)" ]
-                        ]
-                    , div
-                        [ class "dropdown-divider" ]
-                        []
-                    , h6
-                        [ class "dropdown-header" ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-drumstick-bite" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "Flesh" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Flesh
-                                    (Core.Addition Core.Before)
-                                )
-                            )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-arrow-left" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "Before" ]
-                        ]
-                    , span
-                        [ class "dropdown-item"
-                        , onClick
-                            (SetMode
-                                (Core.Selection
-                                    Core.Flesh
-                                    (Core.Addition Core.After)
-                                )
-                            )
-                        ]
-                        [ span
-                            [ class "icon is-small" ]
-                            [ i
-                                [ class "fas fa-arrow-right" ]
-                                []
-                            ]
-                        , span
-                            []
-                            [ text "After" ]
-                        ]
-                    ]
+                        )
+                        fleshAdditionOptions
+                    )
                 ]
+
+        menuBody =
+            [ addElementDropdownButton
             , button
                 [ class "btn btn-outline-danger"
                 , attribute "type" "button"

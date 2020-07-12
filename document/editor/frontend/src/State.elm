@@ -95,6 +95,20 @@ update message model =
 
         ( newModel, command ) =
             case message of
+                AddBoneAtStart ->
+                    let
+                        newBody =
+                            Document.Body.addElementAtStart (Document.Element.emptyBone model.nextBabyId) body
+                    in
+                    applyInsertion newBody
+
+                AddFleshAtEnd ->
+                    let
+                        newBody =
+                            Document.Body.addElementAtEnd (Document.Element.emptyFlesh model.nextBabyId) body
+                    in
+                    applyInsertion newBody
+
                 SaveDocument ->
                     let
                         url =
@@ -234,7 +248,12 @@ update message model =
                     if model.hotkeysEnabled then
                         case model.mode of
                             Core.Default ->
-                                ( model, Cmd.none )
+                                case key of
+                                    "x" ->
+                                        ( { model | mode = Core.Selection Core.All Core.Removal }, Cmd.none )
+
+                                    _ ->
+                                        ( model, Cmd.none )
 
                             _ ->
                                 case key of
