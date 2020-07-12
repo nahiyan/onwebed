@@ -1,6 +1,7 @@
-module Core exposing (AdditionType(..), FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SelectionPurpose(..), SelectionType(..))
+module Core exposing (AdditionType(..), FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SaveState(..), SelectionPurpose(..), SelectionType(..))
 
 import Document exposing (Document)
+import Http
 
 
 type AdditionType
@@ -27,6 +28,12 @@ type Mode
     | MarkupEditing
 
 
+type SaveState
+    = Saving
+    | NoSaveRequired
+    | SaveRequired
+
+
 type alias Model =
     { document : Document
     , fileName : String
@@ -36,6 +43,7 @@ type alias Model =
     , markup : String
     , filter : SelectionType
     , nextBabyId : Maybe Int
+    , saveState : SaveState
     }
 
 
@@ -63,6 +71,8 @@ type Msg
     | RebuildDocument String
     | ExpireBabyElement Int
     | SetNextBabyId Int
+    | SaveDocument
+    | SaveDocumentResult (Result Http.Error String)
 
 
 type alias FlagType =

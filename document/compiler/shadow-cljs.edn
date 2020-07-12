@@ -1,7 +1,6 @@
 ;; shadow-cljs configuration
 {:source-paths ["src/main" "src/test"]
- :dependencies [;   [org.clojure/tools.cli "1.0.194"]
-                [com.google.javascript/closure-compiler-unshaded "v20200504"]
+ :dependencies [[com.google.javascript/closure-compiler-unshaded "v20200504"]
                 [clj-kondo "2020.06.21"]]
  :builds
  {:dev {:target :node-library

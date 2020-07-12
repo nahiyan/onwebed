@@ -5,8 +5,12 @@ var path = require('path')
 var logger = require('morgan')
 
 var indexRouter = require('./routes/index')
+const bodyParser = require('body-parser')
 
 var app = express()
+
+// Body parser
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))

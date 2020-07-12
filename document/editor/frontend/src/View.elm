@@ -77,14 +77,14 @@ view model =
                                     )
                                 ]
                                 [ span
-                                    [ class "icon is-small" ]
+                                    [ class "icon is-small mr-2" ]
                                     [ i
                                         [ class "fas fa-save" ]
                                         []
                                     ]
                                 , span
                                     []
-                                    [ text " Save Changes" ]
+                                    [ text "Save Changes" ]
                                 ]
                             ]
                         ]

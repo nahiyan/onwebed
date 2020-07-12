@@ -6,6 +6,7 @@ import Delay
 import Document
 import Document.Body
 import Document.Element exposing (Element(..))
+import Http
 import Json.Decode
 import Random
 import Rest
@@ -56,6 +57,7 @@ initialize flags =
       , markup = ""
       , filter = Core.All
       , nextBabyId = Nothing
+      , saveState = Core.NoSaveRequired
       }
     , generateNextBabyId
     )
@@ -75,17 +77,45 @@ update message model =
                 Just justBody ->
                     justBody
 
-        postNewElementCommands =
-            Cmd.batch
-                [ Delay.after
-                    2
-                    Delay.Second
-                    (ExpireBabyElement (Maybe.withDefault 0 model.nextBabyId))
-                , generateNextBabyId
-                ]
+        applyInsertion =
+            \newBody ->
+                ( { model
+                    | document = { document | body = Just newBody }
+                    , mode = Core.Default
+                    , saveState = Core.SaveRequired
+                  }
+                , Cmd.batch
+                    [ Delay.after
+                        2
+                        Delay.Second
+                        (ExpireBabyElement (Maybe.withDefault 0 model.nextBabyId))
+                    , generateNextBabyId
+                    ]
+                )
 
         ( newModel, command ) =
             case message of
+                SaveDocument ->
+                    let
+                        url =
+                            "/save/" ++ model.fileName
+
+                        body_ =
+                            Http.stringBody "application/json" (Document.toJson model.document)
+
+                        expect =
+                            Http.expectString SaveDocumentResult
+                    in
+                    ( model, Http.post { url = url, body = body_, expect = expect } )
+
+                SaveDocumentResult result ->
+                    case result of
+                        Ok "success" ->
+                            ( { model | saveState = Core.NoSaveRequired }, Cmd.none )
+
+                        _ ->
+                            ( { model | saveState = Core.SaveRequired }, Cmd.none )
+
                 SetNextBabyId id ->
                     ( { model | nextBabyId = Just id }, Cmd.none )
 
@@ -117,7 +147,7 @@ update message model =
                     ( { model | markup = markup, mode = Core.MarkupEditing }, setupMarkupEditor markup )
 
                 UpdateMarkup markup ->
-                    ( { model | markup = markup }, Cmd.none )
+                    ( { model | markup = markup, saveState = Core.SaveRequired }, Cmd.none )
 
                 EndMarkupEditing ->
                     ( { model | mode = Core.Default }, overlay False )
@@ -136,7 +166,7 @@ update message model =
                                 )
                                 body
                     in
-                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
+                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
 
                 SetFleshTargets index targets ->
                     let
@@ -152,7 +182,7 @@ update message model =
                                 )
                                 body
                     in
-                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
+                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
 
                 SetFleshContent index content ->
                     let
@@ -168,7 +198,7 @@ update message model =
                                 )
                                 body
                     in
-                    ( { model | document = { document | body = Just newBody } }, Cmd.none )
+                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
 
                 SetMode mode ->
                     ( { model | mode = mode }, Cmd.none )
@@ -232,6 +262,7 @@ update message model =
                                     ( { model
                                         | document = { document | body = Just newBody }
                                         , mode = Core.Default
+                                        , saveState = Core.SaveRequired
                                       }
                                     , Cmd.none
                                     )
@@ -245,48 +276,28 @@ update message model =
                                                         newBody =
                                                             Document.Body.addElementBeforeElement id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                                 Core.After ->
                                                     let
                                                         newBody =
                                                             Document.Body.addElementAfterElement id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                                 Core.InsideFirst ->
                                                     let
                                                         newBody =
                                                             Document.Body.addElementInsideElementAsFirstChild id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                                 Core.InsideLast ->
                                                     let
                                                         newBody =
                                                             Document.Body.addElementInsideElementAsLastChild id (Document.Element.emptyBone model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                         Core.Flesh ->
                                             case additionType of
@@ -295,24 +306,14 @@ update message model =
                                                         newBody =
                                                             Document.Body.addElementBeforeElement id (Document.Element.emptyFlesh model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                                 Core.After ->
                                                     let
                                                         newBody =
                                                             Document.Body.addElementAfterElement id (Document.Element.emptyFlesh model.nextBabyId) body
                                                     in
-                                                    ( { model
-                                                        | document = { document | body = Just newBody }
-                                                        , mode = Core.Default
-                                                      }
-                                                    , postNewElementCommands
-                                                    )
+                                                    applyInsertion newBody
 
                                                 _ ->
                                                     ( model, Cmd.none )

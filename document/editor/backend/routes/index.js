@@ -1,8 +1,10 @@
-var express = require('express')
-var router = express.Router()
+const express = require('express')
+const router = express.Router()
 const document = require('../../../../lib/document/base')
 const path = require('path')
 const xmlJs = require('xml-js')
+const fs = require('fs')
+const pretty = require('pretty')
 
 const sourceDirectory = path.resolve('../../../site')
 
@@ -32,6 +34,16 @@ router.get('/edit/:name', function (req, res) {
     content: content,
     name: name
   })
+})
+
+// Save Document
+router.post('/save/:name', function (req, res) {
+  const name = req.params.name
+  const document = req.body
+  const markup = pretty(xmlJs.js2xml(document))
+  fs.writeFileSync(path.join(sourceDirectory, name + '.od'), markup)
+
+  res.send('success')
 })
 
 module.exports = router

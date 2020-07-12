@@ -13,6 +13,44 @@ import Html.Events exposing (onClick)
 toHtml : Model -> Html Msg
 toHtml model =
     let
+        saveButtonClasses =
+            if model.saveState == Core.NoSaveRequired then
+                " disabled"
+
+            else
+                ""
+
+        saveButtonAttributes =
+            if model.saveState == Core.SaveRequired then
+                [ onClick Core.SaveDocument ]
+
+            else
+                []
+
+        saveButtonContent =
+            if model.saveState == Core.Saving then
+                [ div
+                    [ class "spinner-border spinner-border-sm mr-1"
+                    , attribute "role" "status"
+                    ]
+                    [ span [ class "sr-only" ]
+                        [ text "Loading..." ]
+                    ]
+                , span
+                    []
+                    [ text "Saving" ]
+                ]
+
+            else
+                [ span
+                    [ class "icon is-small" ]
+                    [ i
+                        [ class "fas fa-save" ]
+                        []
+                    ]
+                , span [] [ text "Save" ]
+                ]
+
         menuHeader =
             [ a
                 [ href "../"
@@ -44,19 +82,14 @@ toHtml model =
                     [ text "View" ]
                 ]
             , button
-                [ class "btn btn-outline-success"
-                , attribute "type" "button"
-                ]
-                [ span
-                    [ class "icon is-small" ]
-                    [ i
-                        [ class "fas fa-save" ]
-                        []
+                (List.append
+                    [ class ("btn btn-outline-success" ++ saveButtonClasses)
+                    , attribute "type" "button"
+                    , id "save-button"
                     ]
-                , span
-                    []
-                    [ text "Save" ]
-                ]
+                    saveButtonAttributes
+                )
+                saveButtonContent
             ]
 
         menuBody =
