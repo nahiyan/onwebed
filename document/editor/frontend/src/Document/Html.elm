@@ -124,7 +124,7 @@ fromBone bone children model =
                     [ class "input-group" ]
                     [ div
                         [ class "input-group-prepend" ]
-                        [ span [ class "input-group-text" ]
+                        [ div [ class "input-group-text" ]
                             [ span
                                 [ class "icon is-small" ]
                                 [ i
@@ -212,17 +212,20 @@ fromFlesh flesh model =
                     [ class "input-group" ]
                     [ div
                         [ class "input-group-prepend" ]
-                        [ span
+                        [ div
                             [ class "input-group-text" ]
                             [ span
-                                [ class "icon is-small" ]
-                                [ i
-                                    [ class "fas fa-bullseye mr-2" ]
-                                    []
-                                ]
-                            , span
                                 []
-                                [ text "Targets" ]
+                                [ span
+                                    [ class "icon is-small" ]
+                                    [ i
+                                        [ class "fas fa-bullseye mr-2" ]
+                                        []
+                                    ]
+                                , span
+                                    []
+                                    [ text "Targets" ]
+                                ]
                             ]
                         ]
                     , input
