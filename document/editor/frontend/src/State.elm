@@ -144,7 +144,7 @@ update message model =
                     ( model, markupToDocument model.markup )
 
                 RebuildDocument json ->
-                    ( { model | document = Document.fromString json, mode = Core.Default }, overlay False )
+                    ( { model | document = Document.fromString json, mode = Core.Default, saveState = Core.SaveRequired }, overlay False )
 
                 SetFilter selectionType ->
                     ( { model | filter = selectionType }, Cmd.none )
@@ -161,7 +161,7 @@ update message model =
                     ( { model | markup = markup, mode = Core.MarkupEditing }, setupMarkupEditor markup )
 
                 UpdateMarkup markup ->
-                    ( { model | markup = markup, saveState = Core.SaveRequired }, Cmd.none )
+                    ( { model | markup = markup }, Cmd.none )
 
                 EndMarkupEditing ->
                     ( { model | mode = Core.Default }, overlay False )
@@ -244,16 +244,38 @@ update message model =
                     in
                     ( { model | document = { document | body = Just newBody } }, Cmd.none )
 
-                KeyInteraction _ key _ ->
+                KeyInteraction _ key isShiftPressed ->
                     if model.hotkeysEnabled then
                         case model.mode of
                             Core.Default ->
-                                case key of
-                                    "x" ->
-                                        ( { model | mode = Core.Selection Document.Element.All Document.Element.Removal }, Cmd.none )
+                                if isShiftPressed then
+                                    case key of
+                                        "X" ->
+                                            ( { model | mode = Core.Selection Document.Element.All Document.Element.Removal }, Cmd.none )
 
-                                    _ ->
-                                        ( model, Cmd.none )
+                                        "Q" ->
+                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.Before) }, Cmd.none )
+
+                                        "W" ->
+                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.After) }, Cmd.none )
+
+                                        "E" ->
+                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideFirst) }, Cmd.none )
+
+                                        "R" ->
+                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideLast) }, Cmd.none )
+
+                                        "A" ->
+                                            ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.Before) }, Cmd.none )
+
+                                        "S" ->
+                                            ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.After) }, Cmd.none )
+
+                                        _ ->
+                                            ( model, Cmd.none )
+
+                                else
+                                    ( model, Cmd.none )
 
                             _ ->
                                 case key of
