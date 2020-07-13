@@ -49,7 +49,7 @@ generateNextBabyId =
 
 initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
-    ( { document = Document.fromString flags.content
+    ( { document = Document.fromJsonString flags.content
       , fileName = flags.fileName
       , mode = Core.Default
       , hotkeysEnabled = True
@@ -115,7 +115,7 @@ update message model =
                             "/save/" ++ model.fileName
 
                         body_ =
-                            Http.stringBody "application/json" (Document.toJson model.document)
+                            Http.stringBody "application/json" (Document.toJsonString model.document)
 
                         expect =
                             Http.expectString SaveDocumentResult
@@ -144,7 +144,7 @@ update message model =
                     ( model, markupToDocument model.markup )
 
                 RebuildDocument json ->
-                    ( { model | document = Document.fromString json, mode = Core.Default, saveState = Core.SaveRequired }, overlay False )
+                    ( { model | document = Document.fromJsonString json, mode = Core.Default, saveState = Core.SaveRequired }, overlay False )
 
                 SetFilter selectionType ->
                     ( { model | filter = selectionType }, Cmd.none )
@@ -152,7 +152,7 @@ update message model =
                 PrepareMarkupEditing ->
                     ( model
                     , Cmd.batch
-                        [ documentToMarkup (Document.toJson model.document)
+                        [ documentToMarkup (Document.toJsonString model.document)
                         , overlay True
                         ]
                     )

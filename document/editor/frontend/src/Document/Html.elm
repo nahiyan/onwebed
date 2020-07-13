@@ -278,4 +278,4 @@ fromDocumentBody model tree =
             Document.Body.markAlternateHierarchy
                 (Tree.Zipper.fromTree tree)
     in
-    Tree.restructure (\element -> element) (fromDocumentElement model) treeWithMarkedAlternateHierarchy
+    Tree.restructure identity (fromDocumentElement model) treeWithMarkedAlternateHierarchy

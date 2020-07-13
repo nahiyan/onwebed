@@ -1,4 +1,4 @@
-module Document exposing (Document, elementsCount, fromString, isEmpty, toJson)
+module Document exposing (Document, elementsCount, fromJsonString, isEmpty, toJsonString)
 
 import Dict
 import Document.Body
@@ -121,8 +121,8 @@ decoder =
         )
 
 
-fromString : String -> Document
-fromString jsonString =
+fromJsonString : String -> Document
+fromJsonString jsonString =
     case Json.Decode.decodeString (Json.Decode.field "elements" decoder) jsonString of
         Ok elements ->
             let
@@ -182,8 +182,8 @@ fromString jsonString =
             { name = Nothing, body = Nothing }
 
 
-toJson : Document -> String
-toJson document =
+toJsonString : Document -> String
+toJsonString document =
     let
         xmlElement =
             \name attributes children ->
@@ -224,7 +224,7 @@ toJson document =
 
                 Just tree ->
                     Tree.restructure
-                        (\element -> element)
+                        identity
                         (\element children ->
                             case element of
                                 Document.Element.Bone { descriptor } ->
@@ -254,16 +254,14 @@ toJson document =
 
 isEmpty : Document -> Bool
 isEmpty document =
-    case document.body of
-        Just body ->
-            let
-                zipper =
-                    Tree.Zipper.fromTree body
-            in
-            List.isEmpty (zipper |> Tree.Zipper.children)
-
-        Nothing ->
-            False
+    Tree.count
+        (Maybe.withDefault
+            (Tree.singleton
+                Document.Element.Root
+            )
+            document.body
+        )
+        <= 1
 
 
 elementsCount : Document -> { bone : Int, flesh : Int }
