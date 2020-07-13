@@ -1,4 +1,4 @@
-module Document.Element exposing (Element(..), emptyBone, emptyFlesh)
+module Document.Element exposing (AdditionType(..), Element(..), SelectionPurpose(..), SelectionType(..), emptyBone, emptyFlesh)
 
 
 type Element
@@ -9,6 +9,26 @@ type Element
     | Head
     | Name String
     | Root
+
+
+type AdditionType
+    = Before
+    | After
+    | InsideFirst
+    | InsideLast
+    | First
+    | Last
+
+
+type SelectionPurpose
+    = Removal
+    | Addition AdditionType
+
+
+type SelectionType
+    = Bones
+    | FleshItems
+    | All
 
 
 emptyBone : Maybe Int -> Element

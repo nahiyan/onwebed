@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "watch": "parcel watch assets/js/index.js assets/js/document_editor.js -d public/resources",
-    "build": "parcel build assets/js/index.js document_editor.js -d public/resources"
+    "watch": "parcel watch assets/js/index.js assets/js/document_editor.js -d public/resources --public-url /resources",
+    "build": "parcel build assets/js/index.js document_editor.js -d public/resources --public-url /resources"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.1",

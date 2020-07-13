@@ -55,7 +55,7 @@ initialize flags =
       , hotkeysEnabled = True
       , elementEditingEnabled = True
       , markup = ""
-      , filter = Core.All
+      , filter = Document.Element.All
       , nextBabyId = Nothing
       , saveState = Core.NoSaveRequired
       }
@@ -95,17 +95,17 @@ update message model =
 
         ( newModel, command ) =
             case message of
-                AddBoneAtStart ->
+                AddElement elementType additionType ->
                     let
-                        newBody =
-                            Document.Body.addElementAtStart (Document.Element.emptyBone model.nextBabyId) body
-                    in
-                    applyInsertion newBody
+                        newElement =
+                            if elementType == Document.Element.Bones then
+                                Document.Element.emptyBone model.nextBabyId
 
-                AddFleshAtEnd ->
-                    let
+                            else
+                                Document.Element.emptyFlesh model.nextBabyId
+
                         newBody =
-                            Document.Body.addElementAtEnd (Document.Element.emptyFlesh model.nextBabyId) body
+                            Document.Body.addElementAbsolute additionType newElement body
                     in
                     applyInsertion newBody
 
@@ -250,7 +250,7 @@ update message model =
                             Core.Default ->
                                 case key of
                                     "x" ->
-                                        ( { model | mode = Core.Selection Core.All Core.Removal }, Cmd.none )
+                                        ( { model | mode = Core.Selection Document.Element.All Document.Element.Removal }, Cmd.none )
 
                                     _ ->
                                         ( model, Cmd.none )
@@ -273,7 +273,7 @@ update message model =
                     case model.mode of
                         Core.Selection type_ purpose ->
                             case purpose of
-                                Core.Removal ->
+                                Document.Element.Removal ->
                                     let
                                         newBody =
                                             Document.Body.removeElement id body
@@ -286,59 +286,21 @@ update message model =
                                     , Cmd.none
                                     )
 
-                                Core.Addition additionType ->
-                                    case type_ of
-                                        Core.Bone ->
-                                            case additionType of
-                                                Core.Before ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementBeforeElement id (Document.Element.emptyBone model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
+                                Document.Element.Addition additionType ->
+                                    let
+                                        newBody =
+                                            Document.Body.addElementRelative
+                                                additionType
+                                                id
+                                                (if type_ == Document.Element.Bones then
+                                                    Document.Element.emptyBone model.nextBabyId
 
-                                                Core.After ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementAfterElement id (Document.Element.emptyBone model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
-
-                                                Core.InsideFirst ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementInsideElementAsFirstChild id (Document.Element.emptyBone model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
-
-                                                Core.InsideLast ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementInsideElementAsLastChild id (Document.Element.emptyBone model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
-
-                                        Core.Flesh ->
-                                            case additionType of
-                                                Core.Before ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementBeforeElement id (Document.Element.emptyFlesh model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
-
-                                                Core.After ->
-                                                    let
-                                                        newBody =
-                                                            Document.Body.addElementAfterElement id (Document.Element.emptyFlesh model.nextBabyId) body
-                                                    in
-                                                    applyInsertion newBody
-
-                                                _ ->
-                                                    ( model, Cmd.none )
-
-                                        _ ->
-                                            ( model, Cmd.none )
+                                                 else
+                                                    Document.Element.emptyFlesh model.nextBabyId
+                                                )
+                                                body
+                                    in
+                                    applyInsertion newBody
 
                         _ ->
                             ( model, Cmd.none )

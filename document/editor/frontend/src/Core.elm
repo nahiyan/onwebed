@@ -1,30 +1,13 @@
-module Core exposing (AdditionType(..), FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SaveState(..), SelectionPurpose(..), SelectionType(..))
+module Core exposing (FlagType, KeyInteractionType(..), Mode(..), Model, Msg(..), SaveState(..))
 
 import Document exposing (Document)
+import Document.Element
 import Http
-
-
-type AdditionType
-    = Before
-    | After
-    | InsideFirst
-    | InsideLast
-
-
-type SelectionPurpose
-    = Removal
-    | Addition AdditionType
-
-
-type SelectionType
-    = Bone
-    | Flesh
-    | All
 
 
 type Mode
     = Default
-    | Selection SelectionType SelectionPurpose
+    | Selection Document.Element.SelectionType Document.Element.SelectionPurpose
     | MarkupEditing
 
 
@@ -41,7 +24,7 @@ type alias Model =
     , hotkeysEnabled : Bool
     , elementEditingEnabled : Bool
     , markup : String
-    , filter : SelectionType
+    , filter : Document.Element.SelectionType
     , nextBabyId : Maybe Int
     , saveState : SaveState
     }
@@ -66,15 +49,14 @@ type Msg
     | StartMarkupEditing String
     | EndMarkupEditing
     | UpdateMarkup String
-    | SetFilter SelectionType
+    | SetFilter Document.Element.SelectionType
     | ApplyMarkup
     | RebuildDocument String
     | ExpireBabyElement Int
     | SetNextBabyId Int
     | SaveDocument
     | SaveDocumentResult (Result Http.Error String)
-    | AddBoneAtStart
-    | AddFleshAtEnd
+    | AddElement Document.Element.SelectionType Document.Element.AdditionType
 
 
 type alias FlagType =

@@ -2,6 +2,7 @@ module Menu exposing (toHtml)
 
 import Core exposing (Model, Msg(..))
 import Document
+import Document.Element
 import Html exposing (Html, a, button, div, h6, i, input, label, nav, span, text)
 import Html.Attributes exposing (attribute, class, href, id, type_)
 import Html.Events exposing (onClick)
@@ -117,8 +118,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Bone
-                                        (Core.Addition Core.Before)
+                                        Document.Element.Bones
+                                        (Document.Element.Addition Document.Element.Before)
                                     )
                                 )
                             ]
@@ -137,8 +138,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Bone
-                                        (Core.Addition Core.After)
+                                        Document.Element.Bones
+                                        (Document.Element.Addition Document.Element.After)
                                     )
                                 )
                             ]
@@ -157,8 +158,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Bone
-                                        (Core.Addition Core.InsideFirst)
+                                        Document.Element.Bones
+                                        (Document.Element.Addition Document.Element.InsideFirst)
                                     )
                                 )
                             ]
@@ -177,8 +178,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Bone
-                                        (Core.Addition Core.InsideLast)
+                                        Document.Element.Bones
+                                        (Document.Element.Addition Document.Element.InsideLast)
                                     )
                                 )
                             ]
@@ -197,7 +198,7 @@ toHtml model =
                     else
                         [ span
                             [ class "dropdown-item"
-                            , onClick AddBoneAtStart
+                            , onClick (AddElement Document.Element.Bones Document.Element.First)
                             ]
                             [ span
                                 [ class "icon is-small" ]
@@ -230,8 +231,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Flesh
-                                        (Core.Addition Core.Before)
+                                        Document.Element.FleshItems
+                                        (Document.Element.Addition Document.Element.Before)
                                     )
                                 )
                             ]
@@ -250,8 +251,8 @@ toHtml model =
                             , onClick
                                 (SetMode
                                     (Core.Selection
-                                        Core.Flesh
-                                        (Core.Addition Core.After)
+                                        Document.Element.FleshItems
+                                        (Document.Element.Addition Document.Element.After)
                                     )
                                 )
                             ]
@@ -270,7 +271,7 @@ toHtml model =
                     else
                         [ span
                             [ class "dropdown-item"
-                            , onClick AddFleshAtEnd
+                            , onClick (AddElement Document.Element.FleshItems Document.Element.Last)
                             ]
                             [ span
                                 [ class "icon is-small" ]
@@ -330,7 +331,7 @@ toHtml model =
             , button
                 [ class "btn btn-outline-danger"
                 , attribute "type" "button"
-                , onClick (SetMode (Core.Selection Core.All Core.Removal))
+                , onClick (SetMode (Core.Selection Document.Element.All Document.Element.Removal))
                 ]
                 [ span
                     [ class "icon is-small" ]
@@ -361,7 +362,7 @@ toHtml model =
                 [ label
                     [ class
                         ("btn btn-outline-primary"
-                            ++ (if model.filter == Core.All then
+                            ++ (if model.filter == Document.Element.All then
                                     " active"
 
                                 else
@@ -371,14 +372,14 @@ toHtml model =
                     ]
                     [ input
                         (List.append
-                            (if model.filter == Core.All then
+                            (if model.filter == Document.Element.All then
                                 [ attribute "checked" "" ]
 
                              else
                                 []
                             )
                             [ type_ "radio"
-                            , onClick (Core.SetFilter Core.All)
+                            , onClick (Core.SetFilter Document.Element.All)
                             ]
                         )
                         []
@@ -395,7 +396,7 @@ toHtml model =
                 , label
                     [ class
                         ("btn btn-outline-primary"
-                            ++ (if model.filter == Core.Bone then
+                            ++ (if model.filter == Document.Element.Bones then
                                     " active"
 
                                 else
@@ -405,14 +406,14 @@ toHtml model =
                     ]
                     [ input
                         (List.append
-                            (if model.filter == Core.Bone then
+                            (if model.filter == Document.Element.Bones then
                                 [ attribute "checked" "" ]
 
                              else
                                 []
                             )
                             [ type_ "radio"
-                            , onClick (Core.SetFilter Core.Bone)
+                            , onClick (Core.SetFilter Document.Element.Bones)
                             ]
                         )
                         []
@@ -429,7 +430,7 @@ toHtml model =
                 , label
                     [ class
                         ("btn btn-outline-primary"
-                            ++ (if model.filter == Core.Flesh then
+                            ++ (if model.filter == Document.Element.FleshItems then
                                     " active"
 
                                 else
@@ -439,14 +440,14 @@ toHtml model =
                     ]
                     [ input
                         (List.append
-                            (if model.filter == Core.Flesh then
+                            (if model.filter == Document.Element.FleshItems then
                                 [ attribute "checked" "" ]
 
                              else
                                 []
                             )
                             [ type_ "radio"
-                            , onClick (Core.SetFilter Core.Flesh)
+                            , onClick (Core.SetFilter Document.Element.FleshItems)
                             ]
                         )
                         []
@@ -478,23 +479,26 @@ toHtml model =
                     [ div
                         []
                         [ case model.mode of
-                            Core.Selection _ Core.Removal ->
+                            Core.Selection _ Document.Element.Removal ->
                                 text "Select an element which you want to remove."
 
-                            Core.Selection _ (Core.Addition additionType) ->
+                            Core.Selection _ (Document.Element.Addition additionType) ->
                                 text
                                     (case additionType of
-                                        Core.Before ->
+                                        Document.Element.Before ->
                                             "Select an element before which you want to add a new element."
 
-                                        Core.After ->
+                                        Document.Element.After ->
                                             "Select an element after which you want to add a new element."
 
-                                        Core.InsideFirst ->
+                                        Document.Element.InsideFirst ->
                                             "Select an element inside which you want to add a new element as its first child."
 
-                                        Core.InsideLast ->
+                                        Document.Element.InsideLast ->
                                             "Select an element inside which you want to add a new element as its last child."
+
+                                        _ ->
+                                            ""
                                     )
 
                             _ ->

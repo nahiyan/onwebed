@@ -15,7 +15,7 @@ isSelectionModeForBone : Mode -> Bool
 isSelectionModeForBone mode =
     case mode of
         Core.Selection type_ _ ->
-            List.member type_ [ Core.Bone, Core.All ]
+            List.member type_ [ Document.Element.Bones, Document.Element.All ]
 
         _ ->
             False
@@ -25,10 +25,10 @@ boneDisabledAttribute : Model -> Html.Attribute Msg
 boneDisabledAttribute model =
     Html.Attributes.disabled
         (case model.mode of
-            Core.Selection Core.Bone _ ->
+            Core.Selection Document.Element.Bones _ ->
                 True
 
-            Core.Selection Core.All _ ->
+            Core.Selection Document.Element.All _ ->
                 True
 
             _ ->
@@ -40,10 +40,10 @@ fleshDisabledAttribute : Model -> Html.Attribute Msg
 fleshDisabledAttribute model =
     Html.Attributes.disabled
         (case model.mode of
-            Core.Selection Core.Flesh _ ->
+            Core.Selection Document.Element.FleshItems _ ->
                 True
 
-            Core.Selection Core.All _ ->
+            Core.Selection Document.Element.All _ ->
                 True
 
             _ ->
@@ -55,7 +55,7 @@ isSelectionModeForFlesh : Mode -> Bool
 isSelectionModeForFlesh mode =
     case mode of
         Core.Selection type_ _ ->
-            List.member type_ [ Core.Flesh, Core.All ]
+            List.member type_ [ Document.Element.FleshItems, Document.Element.All ]
 
         _ ->
             False
@@ -83,13 +83,13 @@ fromBone bone children model =
                                         ""
                                    )
                                 ++ (case model.mode of
-                                        Core.Selection Core.Flesh _ ->
+                                        Core.Selection Document.Element.FleshItems _ ->
                                             " no-selection"
 
                                         _ ->
                                             ""
                                    )
-                                ++ (if model.filter == Core.Flesh then
+                                ++ (if model.filter == Document.Element.FleshItems then
                                         " hide"
 
                                     else
@@ -171,13 +171,13 @@ fromFlesh flesh model =
                                         ""
                                    )
                                 ++ (case model.mode of
-                                        Core.Selection Core.Bone _ ->
+                                        Core.Selection Document.Element.Bones _ ->
                                             " no-selection"
 
                                         _ ->
                                             ""
                                    )
-                                ++ (if model.filter == Core.Bone then
+                                ++ (if model.filter == Document.Element.Bones then
                                         " hide"
 
                                     else
