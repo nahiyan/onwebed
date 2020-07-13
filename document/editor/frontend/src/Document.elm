@@ -134,56 +134,38 @@ fromString jsonString =
                         _ ->
                             Tree.Zipper.fromTree (Tree.singleton Document.Element.Root)
 
-                name =
-                    (zipper
+                headDefault =
+                    { name = Nothing }
+
+                head =
+                    zipper
                         |> Tree.Zipper.findFromRoot
                             (\element ->
-                                case element of
-                                    Document.Element.Head ->
-                                        True
-
-                                    _ ->
-                                        False
+                                element == Document.Element.Head
                             )
-                    )
                         |> Maybe.andThen
                             (\headZipper ->
-                                let
-                                    maybeNameZipper =
-                                        headZipper
-                                            |> Tree.Zipper.findFromRoot
-                                                (\element ->
-                                                    case element of
-                                                        Document.Element.Name _ ->
-                                                            True
+                                headZipper
+                                    |> Tree.Zipper.children
+                                    |> List.foldl
+                                        (\item acc ->
+                                            case item |> Tree.label of
+                                                Document.Element.Name justName ->
+                                                    { acc | name = Just justName }
 
-                                                        _ ->
-                                                            False
-                                                )
-                                in
-                                case maybeNameZipper of
-                                    Just justNameZipper ->
-                                        case justNameZipper |> Tree.Zipper.label of
-                                            Document.Element.Name justName ->
-                                                Just justName
-
-                                            _ ->
-                                                Nothing
-
-                                    Nothing ->
-                                        Nothing
+                                                _ ->
+                                                    acc
+                                        )
+                                        headDefault
+                                    |> Just
                             )
+                        |> Maybe.withDefault headDefault
 
                 body =
                     zipper
                         |> Tree.Zipper.findFromRoot
                             (\element ->
-                                case element of
-                                    Document.Element.Body ->
-                                        True
-
-                                    _ ->
-                                        False
+                                element == Document.Element.Body
                             )
                         |> Maybe.andThen
                             (\bodyZipper ->
@@ -194,7 +176,7 @@ fromString jsonString =
                                 Just (Tree.tree Document.Element.Root bodyChildren |> Document.Body.applyIndex)
                             )
             in
-            { name = name, body = body }
+            { name = head.name, body = body }
 
         Err _ ->
             { name = Nothing, body = Nothing }
