@@ -43,7 +43,7 @@ argumentsParser = ado
   sourceDirectory <-
     argument str
       ( metavar "SOURCE_PATH"
-          <> value ""
+          <> value "."
           <> help "Directory where your documents reside."
       )
   in { version: version, server: server, port: port, destinationDirectory: destinationDirectory, sourceDirectory: sourceDirectory }

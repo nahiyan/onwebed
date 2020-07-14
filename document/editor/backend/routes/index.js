@@ -1,27 +1,22 @@
 const express = require('express')
 const router = express.Router()
-const document = require('../../../../lib/document/base')
+const document = require('../../../../lib/document/utilities')
 const path = require('path')
 const xmlJs = require('xml-js')
 const fs = require('fs')
 const pretty = require('pretty')
 
-const sourceDirectory = path.resolve('../../../site')
-const destinationDirectory = path.resolve('../../../build')
-
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  const documents = document
-    .sourceItems(sourceDirectory)
-    .filter(function (file) {
-      return document.isPublic(file)
-    })
+  const documentNames = fs
+    .readdirSync(req.app.get('sourceDirectory'), 'utf8')
+    .filter(document.isPublic)
     .map(function (file) {
       return path.basename(file, path.extname(file))
     })
   res.render('documents/index', {
     title: 'Onwebed - Documents',
-    documents: documents
+    documentNames: documentNames
   })
 })
 
@@ -29,7 +24,10 @@ router.get('/', function (req, res, next) {
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name
   const content = xmlJs.xml2js(
-    document.content(path.join(sourceDirectory, name + '.od'))
+    fs.readFileSync(
+      path.join(req.app.get('sourceDirectory'), name + '.od'),
+      'utf8'
+    )
   )
   res.render('documents/edit', {
     content: content,
@@ -42,7 +40,10 @@ router.post('/save/:name', function (req, res) {
   const name = req.params.name
   const document = req.body
   const markup = pretty(xmlJs.js2xml(document))
-  fs.writeFileSync(path.join(sourceDirectory, name + '.od'), markup)
+  fs.writeFileSync(
+    path.join(req.app.get('sourceDirectory'), name + '.od'),
+    markup
+  )
 
   res.send('success')
 })
@@ -51,7 +52,7 @@ router.post('/save/:name', function (req, res) {
 router.get('/view/:name', function (req, res) {
   const name = req.params.name
   const content = fs.readFileSync(
-    path.join(destinationDirectory, name + '.od' + '.html')
+    path.join(req.app.get('destinationDirectory'), name + '.od' + '.html')
   )
 
   res.set('Content-Type', 'text/html')

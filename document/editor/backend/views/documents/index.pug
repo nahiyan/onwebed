@@ -8,10 +8,10 @@ block content
           th(scope="col") Name
           th(scope="col") Actions
       tbody
-        each document in documents
+        each documentName in documentNames
           tr
-            td= document
+            td= documentName
             td
-              a(href="edit/" + document).btn.btn-outline-primary Edit
+              a(href="edit/" + documentName).btn.btn-outline-primary Edit
               | 
-              a(href="delete/" + document).btn.btn-outline-danger Delete
+              a(href="delete/" + documentName).btn.btn-outline-danger Delete

@@ -1,9 +1,9 @@
-var createError = require('http-errors')
-var express = require('express')
-var path = require('path')
-var logger = require('morgan')
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const logger = require('morgan')
 
-var indexRouter = require('./routes/index')
+const indexRouter = require('./routes/index')
 const bodyParser = require('body-parser')
 
 var app = express()
@@ -18,7 +18,6 @@ app.set('view engine', 'pug')
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-// app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 // Routing

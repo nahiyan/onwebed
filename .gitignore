@@ -6,7 +6,7 @@ bin
 .cache
 elm-stuff
 .elm-analyse
-./lib
+lib
 document/editor/backend/public/resources/*
 .spago
 .psci_modules

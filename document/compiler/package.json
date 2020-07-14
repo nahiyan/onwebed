@@ -1,0 +1,20 @@
+{
+  "name": "compiler",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "watch": "npx spago build --watch",
+    "build": "npx spago bundle-module -t ../../lib/document/compiler.js"
+  },
+  "author": "Nahiyan Alamgir <nahiyan.alamgir@live.com> (http://github.com/hedronium)",
+  "license": "ISC",
+  "devDependencies": {
+    "purescript": "^0.13.8",
+    "purty": "^6.2.0",
+    "spago": "^0.15.3"
+  }
+}
