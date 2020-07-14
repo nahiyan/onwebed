@@ -3,10 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "main": "./bin/index.js",
+  "scripts": {
+    "build": "npx spago bundle-app -t bin/index.js",
+    "watch": "npx spago build --watch"
+  },
   "devDependencies": {
     "elm-hot": "^1.1.4",
+    "html": "^1.0.0",
     "node-elm-compiler": "^5.0.4",
-    "shadow-cljs": "2.10.13"
+    "purescript": "^0.13.8",
+    "purty": "^6.2.0",
+    "shadow-cljs": "2.10.13",
+    "spago": "^0.15.3"
   },
   "bin": {
     "onwebed": "./bin/index.js"
