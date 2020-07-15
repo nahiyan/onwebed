@@ -1,11 +1,13 @@
 module Main where
 
-import Prelude
+import Prelude (Unit, apply, map, show, (<>), (=<<))
 import Effect (Effect)
 import Effect.Console (log)
-import Options.Applicative
+import Options.Applicative (Parser, argument, execParser, fullDesc, header, help, helper, info, int, long, metavar, option, progDesc, short, str, strOption, switch, value, (<**>))
 
 foreign import startServer :: String -> String -> Int -> Boolean
+
+foreign import compileFromDirectory :: String -> String -> Effect Unit
 
 type Arguments
   = { version :: Boolean, server :: Boolean, port :: Int, destinationDirectory :: String, sourceDirectory :: String }
@@ -73,4 +75,4 @@ run arguments =
     if arguments.version then
       showVersion
     else
-      log "Compiling..."
+      compileFromDirectory arguments.sourceDirectory arguments.destinationDirectory

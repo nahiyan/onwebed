@@ -1,5 +1,6 @@
 'use strict'
 
+const compiler = require('../lib/document/compiler')
 const app = require('../document/editor/backend/app')
 const http = require('http')
 
@@ -17,3 +18,4 @@ function startServer (sourceDirectory) {
 }
 
 exports.startServer = startServer
+exports.compileFromDirectory = compiler.compileFromDirectory

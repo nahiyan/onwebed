@@ -4,6 +4,12 @@ import Prelude
 import Effect (Effect)
 import Effect.Console (log)
 import Node.FS.Sync as FSSync
+import Node.Encoding as Encoding
+import Node.Path as Path
+import Data.Array as Array
+import Html as Html
+
+foreign import isPublic :: String -> Boolean
 
 compileFromDirectory :: String -> String -> Effect Unit
 compileFromDirectory sourceDirectory destinationDirectory =
@@ -19,4 +25,26 @@ compileFromDirectory sourceDirectory destinationDirectory =
         if not sourceDirectoryExists then
           log "Error: Source directory doesn't exist!"
         else
-          prepareDestinationDirectory <> log "Compiling"
+          let
+            compile =
+              bind (FSSync.readdir sourceDirectory) \items ->
+                let
+                  publicDocumentNames = Array.filter isPublic items
+
+                  inputFilePaths =
+                    publicDocumentNames
+                      # map (\fileName -> Path.concat [ sourceDirectory, fileName ])
+
+                  outputFilePaths =
+                    Array.filter isPublic items
+                      # map (\fileName -> Path.concat [ destinationDirectory, fileName <> ".html" ])
+                in
+                  inputFilePaths
+                    # map
+                        ( \inputFilePath ->
+                            bind (FSSync.readTextFile Encoding.UTF8 inputFilePath) \content ->
+                              Html.fromDocumentContent sourceDirectory content # pure
+                        )
+                    # Html.saveFiles outputFilePaths
+          in
+            prepareDestinationDirectory <> compile
