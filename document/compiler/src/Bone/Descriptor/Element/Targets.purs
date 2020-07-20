@@ -8,10 +8,13 @@ import Data.String as String
 import Data.String.Pattern as StringPattern
 import Prelude
 
-fromFleshItems :: Array Xml.Element -> Map.Map String String
+type Targets
+  = Map.Map String String
+
+fromFleshItems :: Array Xml.Element -> Targets
 fromFleshItems items = fromFleshItems' items Map.empty
 
-fromFleshItems' :: Array Xml.Element -> Map.Map String String -> Map.Map String String
+fromFleshItems' :: Array Xml.Element -> Targets -> Targets
 fromFleshItems' items targets = case items # Array.head of
   Maybe.Just (Xml.Flesh currentItem) ->
     let
@@ -27,3 +30,6 @@ fromFleshItems' items targets = case items # Array.head of
     in
       fromFleshItems' restOfItems newTargets
   _ -> targets
+
+merge :: Targets -> Targets -> Targets
+merge = Map.union

@@ -1,4 +1,4 @@
-module Bone.Descriptor (emptyElement, toElements) where
+module Bone.Descriptor (emptyElement, toElements, Element) where
 
 import Prelude
 import Data.String as String

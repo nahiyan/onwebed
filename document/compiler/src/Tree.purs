@@ -43,6 +43,12 @@ data Empty
 data Tree a
   = Tree a (Array (Tree a))
 
+instance compareXmlElementTrees :: Eq (Tree Xml.Element) where
+  eq a b = flatten a == flatten b
+
+instance showXmlElementTree :: Show (Tree Xml.Element) where
+  show tree = flatten tree # show
+
 instance encodeJsonElement :: EncodeJson (Tree Xml.Element) where
   encodeJson (Tree element children_) = case element of
     Xml.Root ->
