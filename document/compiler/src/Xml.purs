@@ -1,7 +1,6 @@
-module Xml.Element (Element(..), Attribute) where
+module Xml (Element(..), Attribute) where
 
 import Data.Tuple (Tuple)
--- import Tree as Tree
 import Data.Maybe as Maybe
 import Prelude ((#), bind, (==), map, (<>), ($), pure)
 import Data.Array as Array

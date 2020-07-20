@@ -1,4 +1,4 @@
-module Bone.Descriptor where
+module Bone.Descriptor (emptyElement, toElements) where
 
 import Prelude
 import Data.String as String
@@ -21,8 +21,8 @@ data ElementProperty
   | XId
   | HasClosingTag
 
-blankElement :: Element
-blankElement =
+emptyElement :: Element
+emptyElement =
   { name: ""
   , id: ""
   , attributes: ""
@@ -83,7 +83,7 @@ toElements descriptor =
     { mode: Append Name
     , currentCharacter: String.take 1 descriptor
     , restOfCharacters: String.drop 1 descriptor
-    , currentElement: blankElement
+    , currentElement: emptyElement
     , elements: []
     }
 
@@ -147,7 +147,7 @@ handleStartOfElement characterType model = case characterType of
   _ -> model
 
 endElement :: Model -> Model
-endElement model = model { elements = Array.snoc model.elements model.currentElement, mode = Append Name, currentElement = blankElement }
+endElement model = model { elements = Array.snoc model.elements model.currentElement, mode = Append Name, currentElement = emptyElement }
 
 appendElementProperty :: ElementProperty -> Model -> Model
 appendElementProperty property model =

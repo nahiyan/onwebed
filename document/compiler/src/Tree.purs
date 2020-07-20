@@ -35,7 +35,7 @@ import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Combinators ((.:?))
 import Data.Argonaut.Encode.Combinators ((:=), (~>))
 import Data.Argonaut.Core as JsonCore
-import Xml.Element as XmlElement
+import Xml as Xml
 
 data Empty
   = Empty
@@ -43,31 +43,31 @@ data Empty
 data Tree a
   = Tree a (Array (Tree a))
 
-instance encodeJsonElement :: EncodeJson (Tree XmlElement.Element) where
+instance encodeJsonElement :: EncodeJson (Tree Xml.Element) where
   encodeJson (Tree element children_) = case element of
-    XmlElement.Root ->
+    Xml.Root ->
       "elements" := children_
         ~> JsonCore.jsonEmptyObject
-    XmlElement.Body ->
+    Xml.Body ->
       "type" := "element"
         ~> ("name" := "body")
         ~> ("elements" := children_)
         ~> JsonCore.jsonEmptyObject
-    XmlElement.Head ->
+    Xml.Head ->
       "type" := "element"
         ~> ("name" := "head")
         ~> ("elements" := children_)
         ~> JsonCore.jsonEmptyObject
-    XmlElement.Document ->
+    Xml.Document ->
       "type" := "element"
         ~> ("name" := "document")
         ~> ("elements" := children_)
         ~> JsonCore.jsonEmptyObject
-    XmlElement.Text text ->
+    Xml.Text text ->
       "type" := "text"
         ~> ("text" := text)
         ~> JsonCore.jsonEmptyObject
-    XmlElement.Element { name } ->
+    Xml.Element { name } ->
       "type" := "element"
         ~> ("name" := name)
         ~> ("elements" := children_)
@@ -77,7 +77,7 @@ instance encodeJsonElement :: EncodeJson (Tree XmlElement.Element) where
         ~> ("name" := "undefined")
         ~> JsonCore.jsonEmptyObject
 
-instance decodeJsonElement :: DecodeJson (Tree XmlElement.Element) where
+instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
   decodeJson json = do
     obj <- JsonDecode.decodeJson json
     maybeType <- obj .:? "type"
@@ -91,26 +91,26 @@ instance decodeJsonElement :: DecodeJson (Tree XmlElement.Element) where
             children_ = Maybe.fromMaybe [] maybeChildren
           in
             case Maybe.fromMaybe "undefined" maybeName of
-              "bone" -> pure $ tree (XmlElement.Bone { descriptor: "todo" }) children_
+              "bone" -> pure $ tree (Xml.Bone { descriptor: "todo" }) children_
               "flesh" ->
                 let
                   content =
                     children_
                       # Array.foldl
                           ( \acc (Tree element _) -> case element of
-                              XmlElement.Text text -> acc <> text
+                              Xml.Text text -> acc <> text
                               _ -> acc
                           )
                           ""
                 in
-                  pure $ singleton (XmlElement.Flesh { targets: "todo", content: content })
-              "document" -> pure $ tree XmlElement.Document children_
-              "head" -> pure $ tree XmlElement.Head children_
-              "body" -> pure $ tree XmlElement.Body children_
-              _ -> pure $ singleton XmlElement.Root
+                  pure $ singleton (Xml.Flesh { targets: "todo", content: content })
+              "document" -> pure $ tree Xml.Document children_
+              "head" -> pure $ tree Xml.Head children_
+              "body" -> pure $ tree Xml.Body children_
+              _ -> pure $ singleton Xml.Root
         else
-          pure $ singleton (XmlElement.Text (Maybe.fromMaybe "" maybeText))
-      Maybe.Nothing -> pure $ tree XmlElement.Root (Maybe.fromMaybe [] maybeChildren)
+          pure $ singleton (Xml.Text (Maybe.fromMaybe "" maybeText))
+      Maybe.Nothing -> pure $ tree Xml.Root (Maybe.fromMaybe [] maybeChildren)
 
 singleton :: forall a. a -> Tree a
 singleton v = Tree v []

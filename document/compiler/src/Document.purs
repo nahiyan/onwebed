@@ -1,6 +1,6 @@
 module Document (Document, toXmlElementTree) where
 
-import Xml.Element as XmlElement
+import Xml as Xml
 import Tree as Tree
 import Data.Argonaut.Parser as Parser
 import Data.Argonaut.Decode as JsonDecode
@@ -8,12 +8,12 @@ import Data.Either (Either(..))
 import Prelude
 
 type Document
-  = { name :: String, body :: Array XmlElement.Element }
+  = { name :: String, body :: Array Xml.Element }
 
-toXmlElementTree :: String -> String -> Tree.Tree XmlElement.Element
+toXmlElementTree :: String -> String -> Tree.Tree Xml.Element
 toXmlElementTree sourceDirectory content =
   let
-    empty = Tree.singleton XmlElement.Root
+    empty = Tree.singleton Xml.Root
   in
     case Parser.jsonParser content of
       Left left -> empty
