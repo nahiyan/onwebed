@@ -4,7 +4,9 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-  [ "arrays"
+  [ "argonaut"
+  , "argonaut-core"
+  , "arrays"
   , "console"
   , "debug"
   , "effect"
@@ -12,6 +14,7 @@ You can edit this file as you like.
   , "node-fs"
   , "node-path"
   , "psci-support"
+  , "spec"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

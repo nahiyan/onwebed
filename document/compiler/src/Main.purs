@@ -43,7 +43,7 @@ compileFromDirectory sourceDirectory destinationDirectory =
                     # map
                         ( \inputFilePath ->
                             bind (FSSync.readTextFile Encoding.UTF8 inputFilePath) \content ->
-                              Html.fromDocumentContent sourceDirectory content # pure
+                              pure $ Html.fromDocumentContent sourceDirectory content
                         )
                     # Html.saveFiles outputFilePaths
           in
