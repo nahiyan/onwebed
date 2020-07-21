@@ -24,6 +24,7 @@ data Element
   | Head
   | Body
   | Root
+  | Blank
 
 instance showElement :: Show Element where
   show (Element { name }) = "Element: name = " <> name
@@ -34,6 +35,7 @@ instance showElement :: Show Element where
   show Head = "Head"
   show Body = "Body"
   show Root = "Root"
+  show Blank = "Blank"
 
 instance compareXmlElements :: Eq Element where
   eq (Element a) (Element b) = a.name == b.name && a.attributes == b.attributes
@@ -44,6 +46,8 @@ instance compareXmlElements :: Eq Element where
   eq Head Head = true
   eq Body Body = true
   eq Root Root = true
+  eq Root Root = true
+  eq Blank Blank = true
   eq _ _ = false
 
 emptyElement :: Element

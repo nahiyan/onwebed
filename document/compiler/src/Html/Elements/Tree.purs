@@ -15,6 +15,7 @@ import Data.Argonaut.Decode as JsonDecode
 import Data.Argonaut.Parser as Parser
 import Data.Either as Either
 import Document.Body.Fills as Fills
+import Document.Body.Holes as Holes
 
 fromBoneDescriptorElements :: Array Descriptor.Element -> Targets.Targets -> Array (Tree.Tree Xml.Element) -> String -> Tree.Tree Xml.Element
 fromBoneDescriptorElements elements targets endChildren sourceDirectory =
@@ -30,7 +31,7 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
 
           newTreeChildren = case targetedText of
             Maybe.Nothing ->
-              if element.hasClosingTag then
+              if element.hasClosingTag && element.name /= "fill" then
                 [ Tree.singleton (Xml.Text "") ]
               else
                 []
@@ -83,25 +84,14 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
               # Tree.restructure identity
                   ( \element children -> case element of
                       Xml.Bone bone -> fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets children sourceDirectory
-                      _ -> Tree.tree element children
+                      Xml.Body -> Tree.tree Xml.Root children
+                      _ -> Tree.singleton Xml.Blank
                   )
 
-          fills = bodyRestructured # Fills.collect
+          fills = bodyRestructured # Fills.fromBody
         in
           bodyRestructured
-            # Tree.restructure identity
-                ( \element children -> case element of
-                    Xml.Bone bone -> fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets children sourceDirectory
-                    _ -> Tree.tree element children
-                )
-            # Tree.replaceLabel Xml.Root
+            # Holes.fill fills
       Maybe.Nothing -> Tree.singleton Xml.Root
     Either.Left _ -> Tree.singleton Xml.Root
   Either.Left _ -> Tree.singleton Xml.Root
-
--- fromBone :: Xml.Element -> Targets.Targets -> String
--- fromBone (Bone bone) targets sourceDirectory =
---   let
---     descriptorElements = Descriptor.toElements bone.descriptor
---   in
---     fromBoneDescriptorElements descriptorElements targets Maybe.Nothing sourceDirectory

@@ -1,4 +1,4 @@
-module Document.Body.Fills (Fills, collect) where
+module Document.Body.Fills (Fills, fromBody) where
 
 import Tree as Tree
 import Tree.Zipper as Zipper
@@ -11,11 +11,11 @@ import Prelude
 type Fills
   = Map.Map String (Array (Tree.Tree Xml.Element))
 
-collect :: Tree.Tree Xml.Element -> Fills
-collect body = collect' (body # Zipper.fromTree) Map.empty
+fromBody :: Tree.Tree Xml.Element -> Fills
+fromBody body = fromBody' (body # Zipper.fromTree) Map.empty
 
-collect' :: Zipper.Zipper Xml.Element -> Fills -> Fills
-collect' zipper collection =
+fromBody' :: Zipper.Zipper Xml.Element -> Fills -> Fills
+fromBody' zipper collection =
   let
     newCollection = case zipper # Zipper.label of
       Xml.Element { name, attributes } ->
@@ -27,5 +27,5 @@ collect' zipper collection =
       _ -> collection
   in
     case zipper # Zipper.forward of
-      Maybe.Just newZipper -> collect' newZipper newCollection
+      Maybe.Just newZipper -> fromBody' newZipper newCollection
       Maybe.Nothing -> newCollection
