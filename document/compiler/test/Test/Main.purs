@@ -13,7 +13,6 @@ import Prelude
 import Bone.Descriptor as Descriptor
 import Html.Elements.Tree as HtmlElementsTree
 import Foreign.Object as FObject
-import Data.Maybe as Maybe
 import Tree as Tree
 
 main :: Effect Unit
@@ -40,4 +39,30 @@ main =
             Descriptor.toElements "div.container hole#content input.btn.btn-primary[style='margin-left: 1em' type='submit' value='Submit']@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", xClass = "container " }, Descriptor.emptyElement { name = "hole", xId = "content" }, Descriptor.emptyElement { name = "input", xClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
         describe "Html Elements Tree" do
           it "Processes descriptor elements" do
-            (HtmlElementsTree.fromBoneDescriptorElements [ Descriptor.emptyElement { name = "div", id = "content" } ] (Map.singleton "content" "Lorem Ipsum") Maybe.Nothing (Tree.singleton Xml.Root) "src") `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ] ])
+            ( HtmlElementsTree.fromBoneDescriptorElements
+                [ Descriptor.emptyElement { name = "div", id = "content" } ]
+                (Map.singleton "content" "Lorem Ipsum")
+                []
+                "src"
+            )
+              `shouldEqual`
+                (Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ])
+          it "Processes document content with only bone" do
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p'/></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "") ] ] ])
+          it "Processes document content with bone and flesh" do
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p@content'/><flesh for='content'>Lorem Ipsum</flesh></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ], Tree.singleton (Xml.Flesh { content: "Lorem Ipsum", targets: "content" }) ] ])
+          it "Processes document content with hole and fill" do
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div hole#content'/><bone descriptor='fill#content p@p'/><flesh target='p'>Lorem Ipsum</flesh></body></document>" "src"
+              `shouldEqual`
+                ( Tree.Tree Xml.Root
+                    [ Tree.Tree
+                        ( Xml.Element
+                            { name: "div", attributes: FObject.empty }
+                        )
+                        [ Tree.Tree
+                            (Xml.Element { name: "p", attributes: FObject.empty })
+                            [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                        ]
+                    , Tree.singleton (Xml.Flesh { targets: "p", content: "Lorem Ipsum" })
+                    ]
+                )

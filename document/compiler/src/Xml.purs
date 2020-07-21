@@ -1,4 +1,4 @@
-module Xml (Element(..), Attributes, emptyElement, attributesFromString) where
+module Xml (Element(..), Attributes, emptyElement, attributesFromString, toJson) where
 
 import Data.Tuple (Tuple)
 import Data.Maybe as Maybe
@@ -12,6 +12,8 @@ type Attributes
   = FObject.Object String
 
 foreign import attributesFromString :: String -> Attributes
+
+foreign import toJson :: String -> String
 
 data Element
   = Element { name :: String, attributes :: Attributes }

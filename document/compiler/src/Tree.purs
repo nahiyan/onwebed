@@ -36,6 +36,7 @@ import Data.Argonaut.Decode.Combinators ((.:?))
 import Data.Argonaut.Encode.Combinators ((:=), (~>))
 import Data.Argonaut.Core as JsonCore
 import Xml as Xml
+import Foreign.Object as FObject
 
 data Empty
   = Empty
@@ -47,7 +48,7 @@ instance compareXmlElementTrees :: Eq (Tree Xml.Element) where
   eq a b = flatten a == flatten b
 
 instance showXmlElementTree :: Show (Tree Xml.Element) where
-  show tree = flatten tree # show
+  show a = flatten a # show
 
 instance encodeJsonElement :: EncodeJson (Tree Xml.Element) where
   encodeJson (Tree element children_) = case element of
@@ -90,14 +91,21 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
     maybeName <- obj .:? "name"
     maybeText <- obj .:? "text"
     maybeChildren <- obj .:? "elements"
+    maybeAttributes <- obj .:? "attributes"
     case maybeType of
       Maybe.Just type_ ->
         if type_ == "element" then
           let
             children_ = Maybe.fromMaybe [] maybeChildren
+
+            attributes = Maybe.fromMaybe FObject.empty maybeAttributes
           in
             case Maybe.fromMaybe "undefined" maybeName of
-              "bone" -> pure $ tree (Xml.Bone { descriptor: "todo" }) children_
+              "bone" ->
+                let
+                  descriptor = attributes # FObject.lookup "descriptor" # Maybe.fromMaybe ""
+                in
+                  pure $ tree (Xml.Bone { descriptor: descriptor }) children_
               "flesh" ->
                 let
                   content =
@@ -108,12 +116,14 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
                               _ -> acc
                           )
                           ""
+
+                  targets = attributes # FObject.lookup "for" # Maybe.fromMaybe ""
                 in
-                  pure $ singleton (Xml.Flesh { targets: "todo", content: content })
+                  pure $ singleton (Xml.Flesh { targets: targets, content: content })
               "document" -> pure $ tree Xml.Document children_
               "head" -> pure $ tree Xml.Head children_
               "body" -> pure $ tree Xml.Body children_
-              _ -> pure $ singleton Xml.Root
+              name -> pure $ tree (Xml.Element { name: name, attributes: attributes }) children_
         else
           pure $ singleton (Xml.Text (Maybe.fromMaybe "" maybeText))
       Maybe.Nothing -> pure $ tree Xml.Root (Maybe.fromMaybe [] maybeChildren)

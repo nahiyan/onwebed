@@ -1,4 +1,4 @@
-module Bone.Descriptor.Element.Targets where
+module Bone.Descriptor.Element.Targets (fromFleshItems, merge, empty, Targets) where
 
 import Xml as Xml
 import Data.Map as Map
@@ -33,3 +33,6 @@ fromFleshItems' items targets = case items # Array.head of
 
 merge :: Targets -> Targets -> Targets
 merge = Map.union
+
+empty :: Targets
+empty = Map.empty
