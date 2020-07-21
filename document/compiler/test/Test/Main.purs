@@ -14,6 +14,7 @@ import Bone.Descriptor as Descriptor
 import Html.Elements.Tree as HtmlElementsTree
 import Foreign.Object as FObject
 import Tree as Tree
+import Document.Body.Fills as Fills
 
 main :: Effect Unit
 main =
@@ -37,7 +38,7 @@ main =
             Descriptor.toElements "html body div" `shouldEqual` [ Descriptor.emptyElement { name = "html" }, Descriptor.emptyElement { name = "body" }, Descriptor.emptyElement { name = "div" } ]
           it "Processes descriptor with multiple elements, and complex properties" do
             Descriptor.toElements "div.container hole#content input.btn.btn-primary[style='margin-left: 1em' type='submit' value='Submit']@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", xClass = "container " }, Descriptor.emptyElement { name = "hole", xId = "content" }, Descriptor.emptyElement { name = "input", xClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
-        describe "Html Elements Tree" do
+        describe "HTML Elements Tree" do
           it "Processes descriptor elements" do
             ( HtmlElementsTree.fromBoneDescriptorElements
                 [ Descriptor.emptyElement { name = "div", id = "content" } ]
@@ -65,4 +66,26 @@ main =
                         ]
                     , Tree.singleton (Xml.Flesh { targets: "p", content: "Lorem Ipsum" })
                     ]
+                )
+        describe "Document Fills" do
+          it "Collects fills from document body" do
+            Fills.collect
+              ( Tree.Tree Xml.Body
+                  [ Tree.Tree
+                      ( Xml.Element
+                          { name: "fill", attributes: FObject.fromHomogeneous { id: "content" } }
+                      )
+                      [ Tree.Tree
+                          (Xml.Element { name: "p", attributes: FObject.empty })
+                          [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                      ]
+                  ]
+              )
+              `shouldEqual`
+                ( Map.empty
+                    # Map.insert "content"
+                        [ Tree.Tree
+                            (Xml.Element { name: "p", attributes: FObject.empty })
+                            [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                        ]
                 )

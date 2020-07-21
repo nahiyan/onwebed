@@ -14,6 +14,7 @@ import Prelude
 import Data.Argonaut.Decode as JsonDecode
 import Data.Argonaut.Parser as Parser
 import Data.Either as Either
+import Document.Body.Fills as Fills
 
 fromBoneDescriptorElements :: Array Descriptor.Element -> Targets.Targets -> Array (Tree.Tree Xml.Element) -> String -> Tree.Tree Xml.Element
 fromBoneDescriptorElements elements targets endChildren sourceDirectory =
@@ -66,23 +67,32 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
         let
           body = bodyZipper # Zipper.tree
 
-          -- basket contains flesh items, and fills
-          basket =
+          fleshItems =
             body
               # Tree.foldl
                   ( \element acc -> case element of
-                      Xml.Flesh flesh -> acc { fleshItems = Array.snoc acc.fleshItems element }
+                      Xml.Flesh flesh -> Array.snoc acc element
                       _ -> acc
                   )
-                  { fleshItems: [] }
+                  []
 
-          combinedTargets = Targets.merge targets (Targets.fromFleshItems basket.fleshItems)
+          combinedTargets = Targets.merge targets (Targets.fromFleshItems fleshItems)
+
+          bodyRestructured =
+            body
+              # Tree.restructure identity
+                  ( \element children -> case element of
+                      Xml.Bone bone -> fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets children sourceDirectory
+                      _ -> Tree.tree element children
+                  )
+
+          fills = bodyRestructured # Fills.collect
         in
-          body
+          bodyRestructured
             # Tree.restructure identity
-                ( \label children -> case label of
+                ( \element children -> case element of
                     Xml.Bone bone -> fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets children sourceDirectory
-                    _ -> Tree.tree label children
+                    _ -> Tree.tree element children
                 )
             # Tree.replaceLabel Xml.Root
       Maybe.Nothing -> Tree.singleton Xml.Root
