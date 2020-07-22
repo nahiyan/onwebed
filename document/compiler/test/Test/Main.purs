@@ -29,7 +29,7 @@ main =
             (Targets.fromFleshItems [ Xml.Flesh { targets: "title content", content: "Lorem Ipsum" }, Xml.Flesh { targets: "body", content: "Lorem Ipsum again" } ]) `shouldEqual` (Map.singleton "title" "Lorem Ipsum" # Map.insert "content" "Lorem Ipsum" # Map.insert "body" "Lorem Ipsum again")
           it "Processes flesh items with conflicting targets" do
             (Targets.fromFleshItems [ Xml.Flesh { targets: "title", content: "Lorem Ipsum" }, Xml.Flesh { targets: "title", content: "Lorem Ipsum again" } ]) `shouldEqual` Map.singleton "title" "Lorem Ipsum again"
-          it "Merging targets prefer keys of new targets" do
+          it "Prefers keys of newer targets during merge" do
             (Targets.merge (Map.singleton "title" "New title") (Map.singleton "title" "Old title" # Map.insert "content" "Lorem Ipsum")) `shouldEqual` (Map.singleton "title" "New title" # Map.insert "content" "Lorem Ipsum")
         describe "Bone Descriptor" do
           it "Processes empty descriptor" do
@@ -47,7 +47,7 @@ main =
                 "src"
             )
               `shouldEqual`
-                (Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ])
+                Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
         it "Processes document content with only bone" do
           HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p'/></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "") ] ] ])
         it "Processes document content with bone and flesh" do

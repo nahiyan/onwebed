@@ -1,12 +1,11 @@
-module Xml (Element(..), Attributes, emptyElement, attributesFromString, toJson) where
+module Xml (Element(..), Attributes, emptyElement, attributesFromString, toJson, fromDocumentName) where
 
-import Data.Tuple (Tuple)
-import Data.Maybe as Maybe
 import Prelude
-import Data.Array as Array
-import Data.Argonaut.Parser as Parser
-import Data.Map as Map
 import Foreign.Object as FObject
+import Node.FS.Sync as FSSync
+import Node.Path as Path
+import Node.Encoding as Encoding
+import Effect as Effect
 
 type Attributes
   = FObject.Object String
@@ -46,9 +45,13 @@ instance compareXmlElements :: Eq Element where
   eq Head Head = true
   eq Body Body = true
   eq Root Root = true
-  eq Root Root = true
   eq Blank Blank = true
   eq _ _ = false
 
 emptyElement :: Element
 emptyElement = Element { name: "", attributes: FObject.empty }
+
+fromDocumentName :: String -> String -> Effect.Effect String
+fromDocumentName name sourceDirectory =
+  bind (FSSync.readTextFile Encoding.UTF8 $ Path.concat [ sourceDirectory, name ]) \content ->
+    pure content

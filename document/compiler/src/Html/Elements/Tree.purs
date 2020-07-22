@@ -16,6 +16,8 @@ import Data.Argonaut.Parser as Parser
 import Data.Either as Either
 import Document.Body.Fills as Fills
 import Document.Body.Holes as Holes
+import Effect as Effect
+import Effect.Unsafe as EffectUnsafe
 
 fromBoneDescriptorElements :: Array Descriptor.Element -> Targets.Targets -> Array (Tree.Tree Xml.Element) -> String -> Tree.Tree Xml.Element
 fromBoneDescriptorElements elements targets endChildren sourceDirectory =
@@ -37,11 +39,19 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
                 []
             Maybe.Just text -> [ Tree.singleton (Xml.Text text) ]
 
-          newTree = Tree.tree (Xml.Element { name: element.name, attributes: attributes }) newTreeChildren
+          newTree =
+            if element.name /= "page" then
+              Tree.tree (Xml.Element { name: element.name, attributes: attributes }) newTreeChildren
+            else case attributes # FObject.lookup "id" of
+              Maybe.Just id -> EffectUnsafe.unsafePerformEffect $ fromDocumentName (id <> ".od") sourceDirectory targets
+              Maybe.Nothing -> Tree.singleton Xml.Blank
         in
           acc # Zipper.fromTree
             # Zipper.lastDescendant
-            # Zipper.mapTree (\(Tree.Tree label children) -> Tree.tree label (Array.snoc children newTree))
+            # Zipper.mapTree
+                ( \(Tree.Tree label children) ->
+                    Tree.tree label (Array.snoc children newTree)
+                )
             # Zipper.toTree
     )
     (Tree.singleton Xml.Root)
@@ -95,3 +105,10 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
       Maybe.Nothing -> Tree.singleton Xml.Root
     Either.Left _ -> Tree.singleton Xml.Root
   Either.Left _ -> Tree.singleton Xml.Root
+
+fromDocumentName :: String -> String -> Targets.Targets -> Effect.Effect (Tree.Tree Xml.Element)
+fromDocumentName name sourceDirectory targets =
+  bind (Xml.fromDocumentName name sourceDirectory)
+    ( \content ->
+        pure $ fromDocumentContent' content targets sourceDirectory false
+    )
