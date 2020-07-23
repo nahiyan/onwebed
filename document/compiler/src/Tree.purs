@@ -71,7 +71,7 @@ instance encodeJsonElement :: EncodeJson (Tree Xml.Element) where
         ~> JsonCore.jsonEmptyObject
     _ ->
       "type" := "text"
-        ~> ("text" := "Undefined")
+        ~> ("text" := "Unkown HTML element.")
         ~> JsonCore.jsonEmptyObject
 
 instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
@@ -90,7 +90,7 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
 
             attributes = Maybe.fromMaybe FObject.empty maybeAttributes
           in
-            case Maybe.fromMaybe "undefined" maybeName of
+            case Maybe.fromMaybe "unnamed" maybeName of
               "bone" ->
                 let
                   descriptor = attributes # FObject.lookup "descriptor" # Maybe.fromMaybe ""

@@ -1,4 +1,4 @@
-module Html.Elements.Tree (fromBoneDescriptorElements, fromDocumentContent) where
+module Html.Elements.Tree (fromBoneDescriptorElements, fromDocumentContent, fromDocumentName) where
 
 import Bone.Descriptor as Descriptor
 import Bone.Descriptor.Element.Targets as Targets
@@ -48,19 +48,20 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
               else
                 []
             Maybe.Just text -> [ Tree.singleton (Xml.Text text) ]
-
-          newTree =
-            if element.name /= "page" then
-              Tree.tree (Xml.Element { name: element.name, attributes: attributes }) newTreeChildren
-            else case attributes # FObject.lookup "id" of
-              Maybe.Just id -> EffectUnsafe.unsafePerformEffect $ fromDocumentName (id <> ".od") sourceDirectory targets
-              Maybe.Nothing -> Tree.singleton Xml.Blank
         in
           acc # Zipper.fromTree
             # lastHtmlElementZipper
             # Zipper.mapTree
                 ( \(Tree.Tree label children) ->
-                    Tree.tree label (Array.snoc children newTree)
+                    let
+                      newChildren =
+                        if element.name /= "page" then
+                          Array.snoc children $ Tree.tree (Xml.Element { name: element.name, attributes: attributes }) newTreeChildren
+                        else case attributes # FObject.lookup "id" of
+                          Maybe.Just id -> Tree.children $ EffectUnsafe.unsafePerformEffect $ fromDocumentName id sourceDirectory targets
+                          Maybe.Nothing -> Array.snoc children $ Tree.singleton Xml.Blank
+                    in
+                      Tree.tree label newChildren
                 )
             # Zipper.toTree
     )
@@ -70,7 +71,7 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
     # Array.head
     # Maybe.fromMaybe (Tree.singleton Xml.Root)
     # Zipper.fromTree
-    # Zipper.lastDescendant
+    # lastHtmlElementZipper
     # Zipper.mapTree
         ( \(Tree.Tree label children) ->
             Tree.tree label (children <> endChildren)

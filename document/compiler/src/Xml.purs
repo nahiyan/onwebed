@@ -53,5 +53,5 @@ emptyElement = Element { name: "", attributes: FObject.empty }
 
 fromDocumentName :: String -> String -> Effect.Effect String
 fromDocumentName name sourceDirectory =
-  bind (FSSync.readTextFile Encoding.UTF8 $ Path.concat [ sourceDirectory, name ]) \content ->
+  bind (FSSync.readTextFile Encoding.UTF8 (Path.concat [ sourceDirectory, name <> ".od" ])) \content ->
     pure content

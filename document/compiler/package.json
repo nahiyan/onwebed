@@ -8,6 +8,7 @@
   },
   "scripts": {
     "watch": "npx spago build --watch",
+    "test": "npx spago test --watch",
     "build": "npx spago bundle-module -t ../../lib/document/compiler.js"
   },
   "author": "Nahiyan Alamgir <nahiyan.alamgir@live.com> (http://github.com/hedronium)",

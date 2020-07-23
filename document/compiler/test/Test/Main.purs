@@ -49,8 +49,29 @@ main =
             )
               `shouldEqual`
                 Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
-        it "Processes document content with only bone" do
-          HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p'/></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "") ] ] ])
+        it "Processes document content with nested bone" do
+          HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='html'><bone descriptor='head body'/></bone></body></document>" "src"
+            `shouldEqual`
+              ( Tree.Tree Xml.Root
+                  [ Tree.Tree
+                      ( Xml.Element
+                          { name: "html", attributes: FObject.empty }
+                      )
+                      [ Tree.singleton (Xml.Text "")
+                      , Tree.Tree
+                          ( Xml.Element
+                              { name: "head", attributes: FObject.empty }
+                          )
+                          [ Tree.singleton (Xml.Text "")
+                          , Tree.Tree
+                              ( Xml.Element
+                                  { name: "body", attributes: FObject.empty }
+                              )
+                              [ Tree.singleton (Xml.Text "") ]
+                          ]
+                      ]
+                  ]
+              )
         it "Processes document content with bone and flesh" do
           HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p@content'/><flesh for='content'>Lorem Ipsum</flesh></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ] ], Tree.singleton Xml.Blank ])
         it "Processes document content with hole and fill" do
@@ -113,5 +134,5 @@ main =
                         ]
                 )
         describe "HTML" do
-          it "Processes HTML from document content" do
-            Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div p\"/><flesh for=\"content\">Hey</flesh></body></document>" `shouldEqual` "<div>\n  <p></p>\n</div>"
+          it "Generates HTML from document content" do
+            Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div@content p\"/><flesh for=\"content\">Hey</flesh></body></document>" `shouldEqual` "<div>Hey<p></p>\n</div>"
