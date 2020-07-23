@@ -4,8 +4,10 @@ import Xml as Xml
 import Data.Map as Map
 import Data.Array as Array
 import Data.Maybe as Maybe
+import Data.String.Regex as Regex
+import Data.String.Regex.Flags as RegexFlags
 import Data.String as String
-import Data.String.Pattern as StringPattern
+import Data.Either as Either
 import Prelude
 
 type Targets
@@ -24,7 +26,9 @@ fromFleshItems' items targets = case items # Array.head of
         let
           content = currentItem.content
 
-          boneDescriptorElementIds = String.split (StringPattern.Pattern " ") currentItem.targets
+          boneDescriptorElementIds = case Regex.regex "\\s" RegexFlags.global of
+            Either.Right regex -> Regex.split regex currentItem.targets # Array.filter (not String.null)
+            Either.Left _ -> []
         in
           Array.foldl
             ( \acc id ->
