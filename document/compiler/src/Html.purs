@@ -7,9 +7,9 @@ import Data.Array as Array
 import Node.FS.Sync as FSSync
 import Node.Encoding as Encoding
 import Data.Semigroup ((<>))
-import Document as Document
 import Data.Argonaut.Core as JsonCore
 import Data.Argonaut.Encode as JsonEncode
+import Html.Elements.Tree as HtmlElementsTree
 
 foreign import jsonToXml :: String -> String
 
@@ -28,7 +28,7 @@ saveFiles filePaths readFiles =
 
 fromDocumentContent :: String -> String -> String
 fromDocumentContent sourceDirectory content =
-  Document.toXmlElementTree sourceDirectory content
+  HtmlElementsTree.fromDocumentContent content sourceDirectory
     # JsonEncode.encodeJson
     # JsonCore.stringify
     # jsonToXml

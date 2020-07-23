@@ -45,43 +45,33 @@ data Tree a
   = Tree a (Array (Tree a))
 
 instance compareXmlElementTrees :: Eq (Tree Xml.Element) where
-  eq a b = flatten a == flatten b
+  eq a b = (a # show) == (b # show)
 
 instance showXmlElementTree :: Show (Tree Xml.Element) where
-  show a = flatten a # show
+  show a = (a # label # show) <> "; children: " <> (a # children # show)
 
 instance encodeJsonElement :: EncodeJson (Tree Xml.Element) where
   encodeJson (Tree element children_) = case element of
     Xml.Root ->
       "elements" := children_
         ~> JsonCore.jsonEmptyObject
-    Xml.Body ->
-      "type" := "element"
-        ~> ("name" := "body")
-        ~> ("elements" := children_)
-        ~> JsonCore.jsonEmptyObject
-    Xml.Head ->
-      "type" := "element"
-        ~> ("name" := "head")
-        ~> ("elements" := children_)
-        ~> JsonCore.jsonEmptyObject
-    Xml.Document ->
-      "type" := "element"
-        ~> ("name" := "document")
-        ~> ("elements" := children_)
-        ~> JsonCore.jsonEmptyObject
     Xml.Text text ->
       "type" := "text"
         ~> ("text" := text)
         ~> JsonCore.jsonEmptyObject
-    Xml.Element { name } ->
+    Xml.Element { name, attributes } ->
       "type" := "element"
         ~> ("name" := name)
+        ~> ("attributes" := attributes)
         ~> ("elements" := children_)
         ~> JsonCore.jsonEmptyObject
+    Xml.Blank ->
+      "type" := "text"
+        ~> ("text" := "")
+        ~> JsonCore.jsonEmptyObject
     _ ->
-      "type" := "element"
-        ~> ("name" := "undefined")
+      "type" := "text"
+        ~> ("text" := "Undefined")
         ~> JsonCore.jsonEmptyObject
 
 instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where

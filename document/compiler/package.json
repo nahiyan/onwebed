@@ -18,6 +18,7 @@
     "spago": "^0.15.3"
   },
   "dependencies": {
+    "pretty": "^2.0.0",
     "xml-js": "^1.6.11"
   }
 }

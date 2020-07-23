@@ -19,6 +19,16 @@ import Document.Body.Holes as Holes
 import Effect as Effect
 import Effect.Unsafe as EffectUnsafe
 
+lastHtmlElementZipper :: Zipper.Zipper Xml.Element -> Zipper.Zipper Xml.Element
+lastHtmlElementZipper zipper = lastHtmlElementZipper' (zipper # Zipper.lastDescendant)
+
+lastHtmlElementZipper' :: Zipper.Zipper Xml.Element -> Zipper.Zipper Xml.Element
+lastHtmlElementZipper' zipper = case zipper # Zipper.tree of
+  Tree.Tree (Xml.Element _) children -> zipper
+  _ -> case (zipper # Zipper.backward) of
+    Maybe.Just newZipper -> lastHtmlElementZipper' newZipper
+    Maybe.Nothing -> zipper # Zipper.root
+
 fromBoneDescriptorElements :: Array Descriptor.Element -> Targets.Targets -> Array (Tree.Tree Xml.Element) -> String -> Tree.Tree Xml.Element
 fromBoneDescriptorElements elements targets endChildren sourceDirectory =
   Array.foldl
@@ -47,7 +57,7 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
               Maybe.Nothing -> Tree.singleton Xml.Blank
         in
           acc # Zipper.fromTree
-            # Zipper.lastDescendant
+            # lastHtmlElementZipper
             # Zipper.mapTree
                 ( \(Tree.Tree label children) ->
                     Tree.tree label (Array.snoc children newTree)
