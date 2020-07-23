@@ -53,5 +53,20 @@ emptyElement = Element { name: "", attributes: FObject.empty }
 
 fromDocumentName :: String -> String -> Effect.Effect String
 fromDocumentName name sourceDirectory =
-  bind (FSSync.readTextFile Encoding.UTF8 (Path.concat [ sourceDirectory, name <> ".od" ])) \content ->
-    pure content
+  let
+    publicDocumentPath = (Path.concat [ sourceDirectory, name <> ".od" ])
+
+    privateDocumentPath = (Path.concat [ sourceDirectory, "_" <> name <> ".od" ])
+  in
+    do
+      publicDocumentExists <- FSSync.exists publicDocumentPath
+      privateDocumentExists <- FSSync.exists privateDocumentPath
+      if publicDocumentExists then do
+        content <- FSSync.readTextFile Encoding.UTF8 publicDocumentPath
+        pure content
+      else
+        if privateDocumentExists then do
+          content <- FSSync.readTextFile Encoding.UTF8 privateDocumentPath
+          pure content
+        else
+          pure $ "Document " <> name <> " doesn't exist."

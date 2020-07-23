@@ -26,13 +26,23 @@ fromFleshItems' items targets = case items # Array.head of
 
           boneDescriptorElementIds = String.split (StringPattern.Pattern " ") currentItem.targets
         in
-          Array.foldl (\acc id -> acc # Map.insert id content) targets boneDescriptorElementIds
+          Array.foldl
+            ( \acc id ->
+                Map.alter
+                  ( Maybe.maybe (Maybe.Just content)
+                      (\oldValue -> Maybe.Just $ oldValue <> content)
+                  )
+                  id
+                  acc
+            )
+            targets
+            boneDescriptorElementIds
     in
       fromFleshItems' restOfItems newTargets
   _ -> targets
 
 merge :: Targets -> Targets -> Targets
-merge = Map.union
+merge = Map.unionWith (\newValue oldValue -> oldValue <> newValue)
 
 empty :: Targets
 empty = Map.empty

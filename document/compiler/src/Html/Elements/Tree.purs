@@ -38,8 +38,8 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
 
           attributes =
             Xml.attributesFromString element.attributes
-              # (if element.xId # String.null then identity else FObject.insert "id" element.xId)
-              # (if element.xClass # String.null then identity else FObject.insert "class" element.xClass)
+              # (if element.htmlId # String.null then identity else FObject.insert "id" element.htmlId)
+              # (if element.htmlClass # String.null then identity else FObject.insert "class" element.htmlClass)
 
           newTreeChildren = case targetedText of
             Maybe.Nothing ->

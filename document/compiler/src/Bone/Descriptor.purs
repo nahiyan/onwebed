@@ -8,8 +8,8 @@ type Element
   = { name :: String
     , id :: String
     , attributes :: String
-    , xClass :: String
-    , xId :: String
+    , htmlClass :: String
+    , htmlId :: String
     , hasClosingTag :: Boolean
     }
 
@@ -26,8 +26,8 @@ emptyElement =
   { name: ""
   , id: ""
   , attributes: ""
-  , xClass: ""
-  , xId: ""
+  , htmlClass: ""
+  , htmlId: ""
   , hasClosingTag: true
   }
 
@@ -110,7 +110,7 @@ toElements' model =
           if characterType == Other then
             appendElementProperty XClass model
           else
-            handleStartOfElement characterType model { currentElement = model.currentElement { xClass = model.currentElement.xClass <> " " } }
+            handleStartOfElement characterType model { currentElement = model.currentElement { htmlClass = model.currentElement.htmlClass <> " " } }
         Append XId ->
           if characterType == Other then
             appendElementProperty XId model
@@ -155,8 +155,8 @@ appendElementProperty property model =
     newElement = case property of
       Name -> model.currentElement { name = model.currentElement.name <> model.currentCharacter }
       Id -> model.currentElement { id = model.currentElement.id <> model.currentCharacter }
-      XId -> model.currentElement { xId = model.currentElement.xId <> model.currentCharacter }
-      XClass -> model.currentElement { xClass = model.currentElement.xClass <> model.currentCharacter }
+      XId -> model.currentElement { htmlId = model.currentElement.htmlId <> model.currentCharacter }
+      XClass -> model.currentElement { htmlClass = model.currentElement.htmlClass <> model.currentCharacter }
       Attributes -> model.currentElement { attributes = model.currentElement.attributes <> model.currentCharacter }
       _ -> model.currentElement
   in

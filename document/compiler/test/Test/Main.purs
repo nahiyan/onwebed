@@ -27,18 +27,41 @@ main =
           it "Processes single flesh item" do
             (Targets.fromFleshItems [ Xml.Flesh { targets: "title", content: "Lorem Ipsum" } ]) `shouldEqual` Map.singleton "title" "Lorem Ipsum"
           it "Processes multiple flesh items" do
-            (Targets.fromFleshItems [ Xml.Flesh { targets: "title content", content: "Lorem Ipsum" }, Xml.Flesh { targets: "body", content: "Lorem Ipsum again" } ]) `shouldEqual` (Map.singleton "title" "Lorem Ipsum" # Map.insert "content" "Lorem Ipsum" # Map.insert "body" "Lorem Ipsum again")
-          it "Processes flesh items with conflicting targets" do
-            (Targets.fromFleshItems [ Xml.Flesh { targets: "title", content: "Lorem Ipsum" }, Xml.Flesh { targets: "title", content: "Lorem Ipsum again" } ]) `shouldEqual` Map.singleton "title" "Lorem Ipsum again"
-          it "Prefers keys of newer targets during merge" do
-            (Targets.merge (Map.singleton "title" "New title") (Map.singleton "title" "Old title" # Map.insert "content" "Lorem Ipsum")) `shouldEqual` (Map.singleton "title" "New title" # Map.insert "content" "Lorem Ipsum")
+            ( Targets.fromFleshItems
+                [ Xml.Flesh { targets: "title content", content: "Lorem Ipsum" }
+                , Xml.Flesh { targets: "body", content: "More text" }
+                ]
+            )
+              `shouldEqual`
+                ( Map.singleton "title" "Lorem Ipsum"
+                    # Map.insert "content" "Lorem Ipsum"
+                    # Map.insert "body" "More text"
+                )
+          it "Processes flesh items with conflicting targets non-destructively" do
+            ( Targets.fromFleshItems
+                [ Xml.Flesh { targets: "title", content: "This is the " }
+                , Xml.Flesh { targets: "title", content: "title" }
+                ]
+            )
+              `shouldEqual`
+                Map.singleton "title" "This is the title"
+          it "Merges targets non-destructively" do
+            ( Targets.merge (Map.singleton "title" " the title.")
+                ( Map.singleton "title" "This is"
+                    # Map.insert "content" "Lorem Ipsum"
+                )
+            )
+              `shouldEqual`
+                ( Map.singleton "title" "This is the title."
+                    # Map.insert "content" "Lorem Ipsum"
+                )
         describe "Bone Descriptor" do
           it "Processes empty descriptor" do
             Descriptor.toElements "" `shouldEqual` [ Descriptor.emptyElement ]
           it "Processes descriptor with multiple elements" do
             Descriptor.toElements "html body div" `shouldEqual` [ Descriptor.emptyElement { name = "html" }, Descriptor.emptyElement { name = "body" }, Descriptor.emptyElement { name = "div" } ]
           it "Processes descriptor with multiple elements, and complex properties" do
-            Descriptor.toElements "div.container hole#content input.btn.btn-primary[style='margin-left: 1em' type='submit' value='Submit']@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", xClass = "container " }, Descriptor.emptyElement { name = "hole", xId = "content" }, Descriptor.emptyElement { name = "input", xClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
+            Descriptor.toElements "div.container hole#content input.btn.btn-primary[style='margin-left: 1em' type='submit' value='Submit']@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", htmlClass = "container " }, Descriptor.emptyElement { name = "hole", htmlId = "content" }, Descriptor.emptyElement { name = "input", htmlClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
         describe "HTML Elements Tree" do
           it "Processes descriptor elements" do
             ( HtmlElementsTree.fromBoneDescriptorElements
