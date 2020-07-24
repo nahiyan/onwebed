@@ -2,8 +2,9 @@ extends ../base/layout
 
 block content
   p
-    button.btn.btn-outline-primary.mr-2(type='button', data-toggle='collapse', data-target='#parametersCollapse') Parameters
-    button.btn.btn-outline-success(type='button') Compile All
+    button.btn.btn-outline-primary.mr-2(type='button', data-toggle='collapse', data-target='#parametersCollapse')
+      i.fas.fa-info.mr-2
+      | Parameters
   div.collapse#parametersCollapse
     div.card.mb-2
       div.card-body
