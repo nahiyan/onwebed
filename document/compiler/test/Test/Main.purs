@@ -108,31 +108,18 @@ main =
                 )
           it "Processes document content with bone and flesh" do
             HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p@content'/><flesh for='content'>Lorem Ipsum</flesh></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ] ], Tree.singleton Xml.Blank ])
-          it "Flesh item with blank \"for\" attribute shouldn't target any descriptor element." do
-            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p'/><flesh for=''>Lorem Ipsum</flesh></body></document>" "src"
-              `shouldEqual`
-                ( Tree.Tree Xml.Root
-                    [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty })
-                        [ Tree.singleton (Xml.Text "")
-                        , Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty })
-                            [ Tree.singleton (Xml.Text "") ]
-                        ]
-                    , Tree.singleton Xml.Blank
-                    ]
-                )
-          it "Processes document content with hole and fill" do
-            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div hole#content'/><bone descriptor='fill#content p@p'/><flesh for='p'>Lorem Ipsum</flesh></body></document>" "src"
+          it "Processes document content with holes and fills" do
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='hole#content'/><bone descriptor='hole#content2'/><bone descriptor='fill#content p@p'/><bone descriptor='fill#content2 p@p2'/><flesh for='p'>Lorem Ipsum</flesh><flesh for='p2'>Lorem Ipsum2</flesh></body></document>" "src"
               `shouldEqual`
                 ( Tree.Tree Xml.Root
                     [ Tree.Tree
-                        ( Xml.Element
-                            { name: "div", attributes: FObject.empty }
-                        )
-                        [ Tree.singleton (Xml.Text "")
-                        , Tree.Tree
-                            (Xml.Element { name: "p", attributes: FObject.empty })
-                            [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
-                        ]
+                        (Xml.Element { name: "p", attributes: FObject.empty })
+                        [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                    , Tree.Tree
+                        (Xml.Element { name: "p", attributes: FObject.empty })
+                        [ Tree.singleton (Xml.Text "Lorem Ipsum2") ]
+                    , Tree.singleton Xml.Blank
+                    , Tree.singleton Xml.Blank
                     , Tree.singleton Xml.Blank
                     , Tree.singleton Xml.Blank
                     ]

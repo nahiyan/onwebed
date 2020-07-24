@@ -31,11 +31,15 @@ fill' zipper fills =
                   newChildren =
                     parentZipper # Zipper.children
                       # Array.foldl
-                          ( \acc tree ->
-                              if tree # Tree.label # isHole then
-                                acc <> fill_
-                              else
-                                Array.snoc acc tree
+                          ( \acc tree -> case tree # Tree.label of
+                              Xml.Element { name: "hole", attributes: attributes_ } -> case attributes_ # FObject.lookup "id" of
+                                Maybe.Just id_ ->
+                                  if id_ == id then
+                                    acc <> fill_
+                                  else
+                                    Array.snoc acc tree
+                                Maybe.Nothing -> Array.snoc acc tree
+                              _ -> Array.snoc acc tree
                           )
                           []
                 in
