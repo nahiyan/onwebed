@@ -23,6 +23,21 @@ router.get('/', function (req, res, next) {
   })
 })
 
+// router.get('/new', function (req, res, next) {
+//   const documentNames = fs
+//     .readdirSync(req.app.get('sourceDirectory'), 'utf8')
+//     .filter(document.isDocument)
+//     .map(function (file) {
+//       return path.basename(file, path.extname(file))
+//     })
+//   res.render('documents/index', {
+//     title: 'Onwebed - Documents',
+//     documentNames: documentNames,
+//     sourceDirectory: req.app.get('sourceDirectory'),
+//     destinationDirectory: req.app.get('destinationDirectory')
+//   })
+// })
+
 // Edit Document
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name

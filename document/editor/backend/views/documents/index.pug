@@ -1,8 +1,11 @@
 extends ../base/layout
 
 block content
-  p
-    button.btn.btn-outline-primary.mr-2(type='button', data-toggle='collapse', data-target='#parametersCollapse')
+  div.d-flex.mb-3
+    a.btn.btn-outline-success(href='/new')
+      i.fas.fa-plus.mr-2
+      | New
+    button.btn.btn-outline-primary.ml-auto(type='button', data-toggle='collapse', data-target='#parametersCollapse')
       i.fas.fa-info.mr-2
       | Parameters
   div.collapse#parametersCollapse

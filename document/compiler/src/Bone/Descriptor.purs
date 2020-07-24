@@ -65,8 +65,8 @@ data Mode
 
 getCharacterType :: String -> CharacterType
 getCharacterType character = case character of
-  "[" -> StartOfAttributes
-  "]" -> EndOfAttributes
+  "(" -> StartOfAttributes
+  ")" -> EndOfAttributes
   "." -> StartOfXClass
   "#" -> StartOfXId
   "@" -> StartOfId

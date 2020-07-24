@@ -72,7 +72,7 @@ main =
           it "Processes descriptor with multiple elements" do
             Descriptor.toElements "html body div" `shouldEqual` [ Descriptor.emptyElement { name = "html" }, Descriptor.emptyElement { name = "body" }, Descriptor.emptyElement { name = "div" } ]
           it "Processes descriptor with multiple elements, and complex properties" do
-            Descriptor.toElements "div.container hole#content input.btn.btn-primary[style='margin-left: 1em' type='submit' value='Submit']@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", htmlClass = "container " }, Descriptor.emptyElement { name = "hole", htmlId = "content" }, Descriptor.emptyElement { name = "input", htmlClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
+            Descriptor.toElements "div.container hole#content input.btn.btn-primary(style='margin-left: 1em' type='submit' value='Submit')@button." `shouldEqual` [ Descriptor.emptyElement { name = "div", htmlClass = "container " }, Descriptor.emptyElement { name = "hole", htmlId = "content" }, Descriptor.emptyElement { name = "input", htmlClass = "btn btn-primary ", attributes = "style='margin-left: 1em' type='submit' value='Submit'", id = "button", hasClosingTag = false } ]
         describe "HTML Elements Tree" do
           it "Processes descriptor elements" do
             ( HtmlElementsTree.fromBoneDescriptorElements
