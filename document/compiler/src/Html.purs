@@ -18,9 +18,9 @@ foreign import format :: String -> String
 saveFiles :: Array String -> Array (Effect String) -> Effect Unit
 saveFiles filePaths readFiles =
   Array.zipWith
-    ( \filePath readFile ->
-        bind readFile \content ->
-          (log ("Written " <> filePath)) <> FSSync.writeTextFile Encoding.UTF8 filePath content
+    ( \filePath readFile -> do
+        content <- readFile
+        (log ("Written " <> filePath)) <> FSSync.writeTextFile Encoding.UTF8 filePath content
     )
     filePaths
     readFiles

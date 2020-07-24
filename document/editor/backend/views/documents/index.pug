@@ -1,17 +1,33 @@
 extends ../base/layout
 
 block content
-    h1 List of Documents
-    table.table.table-striped
-      thead
+  p
+    button.btn.btn-outline-primary.mr-2(type='button', data-toggle='collapse', data-target='#parametersCollapse') Parameters
+    button.btn.btn-outline-success(type='button') Compile All
+  div.collapse#parametersCollapse
+    div.card.mb-2
+      div.card-body
+        div
+          span.mr-2
+            b Source Directory:
+          span= sourceDirectory
+        div
+          span.mr-2
+            b Destination Directory:
+          span= destinationDirectory
+
+  h1 List of Documents
+  table.table.table-striped
+    thead
+      tr
+        th(scope="col") Name
+        th(scope="col") Actions
+    tbody
+      each documentName in documentNames
         tr
-          th(scope="col") Name
-          th(scope="col") Actions
-      tbody
-        each documentName in documentNames
-          tr
-            td= documentName
-            td
-              a(href="edit/" + documentName).btn.btn-outline-primary Edit
-              | 
-              a(href="delete/" + documentName).btn.btn-outline-danger Delete
+          td
+            a(href='view/' + documentName, target='_blank')= documentName
+          td
+            a(href="edit/" + documentName).btn.btn-outline-primary Edit
+            | 
+            a(href="delete/" + documentName).btn.btn-outline-danger Delete

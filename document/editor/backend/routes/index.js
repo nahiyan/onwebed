@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const document = require('../../../../lib/document/utilities')
+const compiler = require('../../../../lib/document/compiler')
 const path = require('path')
 const xmlJs = require('xml-js')
 const fs = require('fs')
@@ -10,13 +11,15 @@ const pretty = require('pretty')
 router.get('/', function (req, res, next) {
   const documentNames = fs
     .readdirSync(req.app.get('sourceDirectory'), 'utf8')
-    .filter(document.isPublic)
+    .filter(document.isDocument)
     .map(function (file) {
       return path.basename(file, path.extname(file))
     })
   res.render('documents/index', {
     title: 'Onwebed - Documents',
-    documentNames: documentNames
+    documentNames: documentNames,
+    sourceDirectory: req.app.get('sourceDirectory'),
+    destinationDirectory: req.app.get('destinationDirectory')
   })
 })
 
@@ -38,12 +41,17 @@ router.get('/edit/:name', function (req, res) {
 // Save Document
 router.post('/save/:name', function (req, res) {
   const name = req.params.name
+  const fileName = name + '.od'
   const document = req.body
   const markup = pretty(xmlJs.js2xml(document))
-  fs.writeFileSync(
-    path.join(req.app.get('sourceDirectory'), name + '.od'),
-    markup
-  )
+
+  // Write the file
+  fs.writeFileSync(path.join(req.app.get('sourceDirectory'), fileName), markup)
+
+  // Compile all documents, just in case they got dependencies
+  compiler.compileFromDirectory(req.app.get('sourceDirectory'))(
+    req.app.get('destinationDirectory')
+  )()
 
   res.send('success')
 })
@@ -51,12 +59,24 @@ router.post('/save/:name', function (req, res) {
 // View Document
 router.get('/view/:name', function (req, res) {
   const name = req.params.name
-  const content = fs.readFileSync(
-    path.join(req.app.get('destinationDirectory'), name + '.od' + '.html')
-  )
+  const fileName = name + '.od'
 
-  res.set('Content-Type', 'text/html')
-  res.end(content)
+  if (document.isPublic(fileName)) {
+    // Compile the document
+    compiler.compile(fileName)(req.app.get('sourceDirectory'))(
+      req.app.get('destinationDirectory')
+    )()
+
+    const content = fs.readFileSync(
+      path.join(req.app.get('destinationDirectory'), name + '.html')
+    )
+
+    res.set('Content-Type', 'text/html')
+    res.end(content)
+  } else {
+    res.set('Content-Type', 'text/html')
+    res.end('The page is private.')
+  }
 })
 
 module.exports = router
