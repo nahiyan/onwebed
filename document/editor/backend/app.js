@@ -2,11 +2,32 @@ const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
 const logger = require('morgan')
+const { flash } = require('express-flash-message')
+const session = require('express-session')
 
 const indexRouter = require('./routes/index')
 const bodyParser = require('body-parser')
 
 var app = express()
+
+// Session
+app.set('trust proxy', 1) // trust first proxy
+app.use(
+  session({
+    secret: 'secret',
+    key: 'onwebed',
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      maxAge: null
+    },
+    saveUninitialized: false,
+    resave: false
+  })
+)
+
+// Flash messages
+app.use(flash())
 
 // Body parser
 app.use(bodyParser.urlencoded({ extended: true }))

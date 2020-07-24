@@ -25,13 +25,15 @@ block content
     thead
       tr
         th(scope="col") Name
+        th(scope="col") Machine Name
         th(scope="col") Actions
     tbody
-      each documentName in documentNames
+      each document in documents
         tr
           td
-            a(href='view/' + documentName, target='_blank')= documentName
+            a(href='view/' + document.machineName, target='_blank')= document.machineName
+          td= document.name
           td
-            a(href="edit/" + documentName).btn.btn-outline-primary Edit
+            a(href="edit/" + document.machineName).btn.btn-outline-primary Edit
             | 
-            a(href="delete/" + documentName).btn.btn-outline-danger Delete
+            a(href="delete/" + document.machineName).btn.btn-outline-danger Delete

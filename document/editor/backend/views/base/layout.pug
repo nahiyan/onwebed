@@ -10,6 +10,16 @@ head
 body
   include menu
   div.container.mt-3
+    //- - var messages = getMessages()
+    //- div= "Messages: " + JSON.stringify(message)
+    if messagesDanger
+      each msg in messagesDanger
+        div.alert.alert-danger= msg
+    if messagesSuccess
+      each msg in messagesSuccess
+        div.alert.alert-success= msg
+
+        
     block content
       |Default content
 
