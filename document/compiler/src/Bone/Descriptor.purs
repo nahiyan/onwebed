@@ -90,7 +90,7 @@ toElements descriptor =
 toElements' :: Model -> Array Element
 toElements' model =
   if String.null model.currentCharacter then
-    (endElement model).elements
+    (endElement model).elements # Array.filter (\element -> element.name # String.null # not)
   else
     let
       characterType = getCharacterType model.currentCharacter
@@ -147,7 +147,13 @@ handleStartOfElement characterType model = case characterType of
   _ -> model
 
 endElement :: Model -> Model
-endElement model = model { elements = Array.snoc model.elements model.currentElement, mode = Append Name, currentElement = emptyElement }
+endElement model =
+  model
+    { elements =
+      Array.snoc model.elements model.currentElement
+    , mode = Append Name
+    , currentElement = emptyElement
+    }
 
 appendElementProperty :: ElementProperty -> Model -> Model
 appendElementProperty property model =
