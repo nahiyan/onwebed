@@ -76,6 +76,23 @@ router.post('/new', async function (req, res, next) {
   }
 })
 
+router.get('/delete/:name', async function (req, res, next) {
+  const name = req.params.name
+  const documentFileName = path.join(
+    req.app.get('sourceDirectory'),
+    name + '.od'
+  )
+
+  if (fs.existsSync(documentFileName)) {
+    fs.unlinkSync(documentFileName)
+    await req.flash('success', `Document ${name} deleted successfully!`)
+    res.redirect('/')
+  } else {
+    await req.flash('danger', `Document ${name} doesn't exist.`)
+    res.redirect('/')
+  }
+})
+
 // Edit Document
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name
