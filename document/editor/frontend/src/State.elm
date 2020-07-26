@@ -50,7 +50,7 @@ generateNextBabyId =
 initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
     ( { document = Document.fromJsonString flags.content
-      , fileName = flags.fileName
+      , machineName = flags.fileName
       , mode = Core.Default
       , hotkeysEnabled = True
       , elementEditingEnabled = True
@@ -109,10 +109,27 @@ update message model =
                     in
                     applyInsertion newBody
 
+                SetDocumentName name ->
+                    let
+                        document_ =
+                            model.document
+
+                        newDocument =
+                            { document_
+                                | name =
+                                    if String.isEmpty (name |> String.trim) then
+                                        Nothing
+
+                                    else
+                                        Just name
+                            }
+                    in
+                    ( { model | document = newDocument, saveState = Core.SaveRequired }, Cmd.none )
+
                 SaveDocument ->
                     let
                         url =
-                            "/save/" ++ model.fileName
+                            "/save/" ++ model.machineName
 
                         body_ =
                             Http.stringBody "application/json" (Document.toJsonString model.document)

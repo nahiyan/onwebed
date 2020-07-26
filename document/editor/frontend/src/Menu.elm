@@ -3,9 +3,9 @@ module Menu exposing (toHtml)
 import Core exposing (Model, Msg(..))
 import Document
 import Document.Element
-import Html exposing (Html, a, button, div, h6, i, input, label, nav, span, text)
+import Html exposing (Html, a, button, div, form, h6, i, input, label, nav, span, text)
 import Html.Attributes exposing (attribute, class, href, id, type_)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 
 
 
@@ -69,7 +69,7 @@ toHtml model =
                     [ text "Back" ]
                 ]
             , a
-                [ attribute "href" ("/view/" ++ model.fileName)
+                [ attribute "href" ("/view/" ++ model.machineName)
                 , attribute "target" "__parent"
                 , class "btn btn-outline-secondary"
                 ]
@@ -92,6 +92,32 @@ toHtml model =
                     saveButtonAttributes
                 )
                 saveButtonContent
+            , form
+                [ class "form-inline" ]
+                [ div
+                    [ class "input-group" ]
+                    [ div
+                        [ class "input-group-prepend" ]
+                        [ div
+                            [ class "input-group-text" ]
+                            [ span
+                                [ class "icon is-small" ]
+                                [ i
+                                    [ class "fas fa-id-badge" ]
+                                    []
+                                ]
+                            , text "Name"
+                            ]
+                        ]
+                    , input
+                        [ class "form-control"
+                        , id "document-name"
+                        , Html.Attributes.attribute "value" (Maybe.withDefault "" model.document.name)
+                        , onInput SetDocumentName
+                        ]
+                        []
+                    ]
+                ]
             ]
 
         addElementDropdownButton =

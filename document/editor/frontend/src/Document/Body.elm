@@ -153,11 +153,7 @@ mapElements map tree =
 
 addElementRelative : Document.Element.AdditionType -> Int -> Element -> Tree Element -> Tree Element
 addElementRelative type_ index element body =
-    let
-        zipper =
-            Tree.Zipper.fromTree body
-    in
-    case Tree.Zipper.findFromRoot (checkElementWithIndex index) zipper of
+    case Tree.Zipper.fromTree body |> Tree.Zipper.findFromRoot (checkElementWithIndex index) of
         Just newZipper ->
             let
                 newTree =

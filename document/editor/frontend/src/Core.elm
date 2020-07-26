@@ -19,7 +19,7 @@ type SaveState
 
 type alias Model =
     { document : Document
-    , fileName : String
+    , machineName : String
     , mode : Mode
     , hotkeysEnabled : Bool
     , elementEditingEnabled : Bool
@@ -40,6 +40,7 @@ type Msg
     = SetBoneDescriptor Int String
     | SetFleshTargets Int String
     | SetFleshContent Int String
+    | SetDocumentName String
     | SetMode Mode
     | SelectElement Int
     | KeyInteraction KeyInteractionType String Bool
