@@ -1,4 +1,4 @@
-module Xml (Element(..), Attributes, emptyElement, attributesFromString, toJson, fromDocumentName) where
+module Xml (Element(..), Attributes, emptyElement, attributesFromString, toJson, fromDocumentName, mergeAttributes) where
 
 import Prelude
 import Foreign.Object as FObject
@@ -6,6 +6,7 @@ import Node.FS.Sync as FSSync
 import Node.Path as Path
 import Node.Encoding as Encoding
 import Effect as Effect
+import Data.Maybe as Maybe
 
 type Attributes
   = FObject.Object String
@@ -17,7 +18,7 @@ foreign import toJson :: String -> String
 data Element
   = Element { name :: String, attributes :: Attributes }
   | Bone { descriptor :: String }
-  | Flesh { targets :: String, content :: String }
+  | Flesh { for :: String, content :: Maybe.Maybe String, attributes :: Maybe.Maybe Attributes }
   | Text String
   | Document
   | Head
@@ -28,7 +29,7 @@ data Element
 instance showElement :: Show Element where
   show (Element { name }) = "Element: name = " <> name
   show (Bone { descriptor }) = "Bone: descriptor = " <> descriptor
-  show (Flesh { targets, content }) = "Flesh: targets = " <> targets <> ", content = " <> content
+  show (Flesh { for, content, attributes }) = "Flesh: targets = " <> for <> ", attributes = " <> (attributes # show) <> ", content = " <> (content # show)
   show (Text text) = "Text: " <> text
   show Document = "Document"
   show Head = "Head"
@@ -39,7 +40,7 @@ instance showElement :: Show Element where
 instance compareXmlElements :: Eq Element where
   eq (Element a) (Element b) = a.name == b.name && a.attributes == b.attributes
   eq (Bone a) (Bone b) = a.descriptor == b.descriptor
-  eq (Flesh a) (Flesh b) = a.targets == b.targets && a.content == b.content
+  eq (Flesh a) (Flesh b) = a.for == b.for && a.content == b.content
   eq (Text a) (Text b) = a == b
   eq Document Document = true
   eq Head Head = true
@@ -70,3 +71,13 @@ fromDocumentName name sourceDirectory =
           pure content
         else
           pure $ "Document " <> name <> " doesn't exist."
+
+mergeAttributes :: Attributes -> Attributes -> Attributes
+mergeAttributes a b =
+  a
+    # FObject.fold
+        ( \acc key value -> case b # FObject.lookup key of
+            Maybe.Nothing -> acc # FObject.insert key value
+            Maybe.Just bValue -> acc # FObject.insert key (bValue <> value)
+        )
+        FObject.empty

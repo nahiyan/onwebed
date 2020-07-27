@@ -37,6 +37,7 @@ import Data.Argonaut.Encode.Combinators ((:=), (~>))
 import Data.Argonaut.Core as JsonCore
 import Xml as Xml
 import Foreign.Object as FObject
+import Data.String as String
 
 data Empty
   = Empty
@@ -98,7 +99,7 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
                   pure $ tree (Xml.Bone { descriptor: descriptor }) children_
               "flesh" ->
                 let
-                  content =
+                  content_ =
                     children_
                       # Array.foldl
                           ( \acc (Tree element _) -> case element of
@@ -107,9 +108,23 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
                           )
                           ""
 
-                  targets = attributes # FObject.lookup "for" # Maybe.fromMaybe ""
+                  content =
+                    if String.take 8 content_ == "(ignore)" then
+                      Maybe.Nothing
+                    else
+                      Maybe.Just content_
+
+                  for = attributes # FObject.lookup "for" # Maybe.fromMaybe ""
+
+                  attributes_ =
+                    attributes # FObject.lookup "attributes"
+                      # Maybe.maybe Maybe.Nothing \attributesString ->
+                          if String.take 8 attributesString == "(ignore)" then
+                            Maybe.Nothing
+                          else
+                            Maybe.Just $ attributesString # Xml.attributesFromString
                 in
-                  pure $ singleton (Xml.Flesh { targets: targets, content: content })
+                  pure $ singleton (Xml.Flesh { for: for, content: content, attributes: attributes_ })
               "document" -> pure $ tree Xml.Document children_
               "head" -> pure $ tree Xml.Head children_
               "body" -> pure $ tree Xml.Body children_

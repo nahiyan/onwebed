@@ -16,6 +16,7 @@ import Foreign.Object as FObject
 import Tree as Tree
 import Document.Body.Fills as Fills
 import Html as Html
+import Data.Maybe as Maybe
 
 main :: Effect Unit
 main =
@@ -24,48 +25,64 @@ main =
         describe "Bone Descriptor Element Targets" do
           it "Processes empty map for no flesh item" do
             (Targets.fromFleshItems []) `shouldEqual` Map.empty
-          it "Processes single flesh item" do
-            (Targets.fromFleshItems [ Xml.Flesh { targets: "title", content: "Lorem Ipsum" } ]) `shouldEqual` Map.singleton "title" "Lorem Ipsum"
+          it "Processes targeted content" do
+            ( Targets.fromFleshItems
+                [ Xml.Flesh { for: "(=)title", content: Maybe.Just " is an ", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "(>)title", content: Maybe.Just "amazing ", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "title", content: Maybe.Just "title!", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "(<)title", content: Maybe.Just "This", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "content", content: Maybe.Just "Lorem Ipsum", attributes: Maybe.Nothing }
+                ]
+            )
+              `shouldEqual`
+                ( Map.singleton "title"
+                    (Targets.TargetProperties Targets.Set Maybe.Nothing (Maybe.Just "This is an amazing title!"))
+                    # Map.insert "content"
+                        (Targets.TargetProperties Targets.Prepend Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
+                )
+          it "Processes targeted attributes" do
+            ( Targets.fromFleshItems
+                [ Xml.Flesh { for: "(=)title", content: Maybe.Nothing, attributes: Maybe.Just $ FObject.singleton "class" "container" }
+                , Xml.Flesh { for: "(>)title", content: Maybe.Nothing, attributes: Maybe.Just $ FObject.singleton "class" " mb-1" # FObject.insert "id" "title" }
+                , Xml.Flesh { for: "(<)title", content: Maybe.Nothing, attributes: Maybe.Just $ FObject.singleton "id" "main-" }
+                ]
+            )
+              `shouldEqual`
+                ( Map.singleton "title"
+                    (Targets.TargetProperties Targets.Set (Maybe.Just $ FObject.singleton "class" "container mb-1" # FObject.insert "id" "main-title") Maybe.Nothing)
+                )
           it "Processes multiple flesh items" do
             ( Targets.fromFleshItems
-                [ Xml.Flesh { targets: "title content", content: "Lorem Ipsum" }
-                , Xml.Flesh { targets: "body", content: "More text" }
+                [ Xml.Flesh { for: "title content", content: Maybe.Just "Lorem Ipsum", attributes: Maybe.Just (FObject.singleton "class" "container") }
+                , Xml.Flesh { for: "body", content: Maybe.Just "More text", attributes: Maybe.Just (FObject.singleton "id" "body") }
                 ]
             )
               `shouldEqual`
-                ( Map.singleton "title" "Lorem Ipsum"
-                    # Map.insert "content" "Lorem Ipsum"
-                    # Map.insert "body" "More text"
+                ( Map.singleton "title" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
+                    # Map.insert "content" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
+                    # Map.insert "body" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "id" "body") (Maybe.Just "More text"))
                 )
-          it "Processes flesh items with conflicting targets non-destructively" do
-            ( Targets.fromFleshItems
-                [ Xml.Flesh { targets: "title", content: "This is the " }
-                , Xml.Flesh { targets: "title", content: "title" }
-                ]
-            )
-              `shouldEqual`
-                Map.singleton "title" "This is the title"
           it "Shouldn't register blank targets of flesh items" do
             ( Targets.fromFleshItems
-                [ Xml.Flesh { targets: "", content: "Lorem Ipsum" }
-                , Xml.Flesh { targets: "    ", content: "Lorem Ipsum" }
-                , Xml.Flesh { targets: "hey         now", content: "Lorem Ipsum" }
+                [ Xml.Flesh { for: "", content: Maybe.Just "Lorem Ipsum", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "    ", content: Maybe.Just "Lorem Ipsum", attributes: Maybe.Nothing }
+                , Xml.Flesh { for: "hey         now", content: Maybe.Just "Lorem Ipsum", attributes: Maybe.Nothing }
                 ]
             )
               `shouldEqual`
-                ( Map.singleton "hey" "Lorem Ipsum"
-                    # Map.insert "now" "Lorem Ipsum"
+                ( Map.singleton "hey" (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
+                    # Map.insert "now" (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
                 )
-          it "Merges targets non-destructively" do
-            ( Targets.merge (Map.singleton "title" " the title.")
-                ( Map.singleton "title" "This is"
-                    # Map.insert "content" "Lorem Ipsum"
-                )
-            )
-              `shouldEqual`
-                ( Map.singleton "title" "This is the title."
-                    # Map.insert "content" "Lorem Ipsum"
-                )
+        -- it "Merges targets properly" do
+        --   ( Targets.merge (Map.singleton "title" " the title.")
+        --       ( Map.singleton "title" "This is"
+        --           # Map.insert "content" "Lorem Ipsum"
+        --       )
+        --   )
+        --     `shouldEqual`
+        --       ( Map.singleton "title" "This is the title."
+        --           # Map.insert "content" "Lorem Ipsum"
+        --       )
         describe "Bone Descriptor" do
           it "Processes empty descriptor" do
             Descriptor.toElements "" `shouldEqual` []

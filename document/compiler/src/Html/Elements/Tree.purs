@@ -34,14 +34,14 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
   Array.foldl
     ( \acc element ->
         let
-          targetedText = targets # Map.lookup element.id
+          targetedProperties = targets # Map.lookup element.id
 
           attributes =
             Xml.attributesFromString element.attributes
               # (if element.htmlId # String.null then identity else FObject.insert "id" element.htmlId)
               # (if element.htmlClass # String.null then identity else FObject.insert "class" element.htmlClass)
 
-          newTreeChildren = case targetedText of
+          newTreeChildren = case targetedProperties # Maybe.maybe Maybe.Nothing (\(Targets.TargetProperties _ _ targetedText) -> targetedText) of
             Maybe.Nothing ->
               if element.hasClosingTag && element.name /= "fill" then
                 [ Tree.singleton (Xml.Text "") ]
