@@ -74,10 +74,14 @@ fromDocumentName name sourceDirectory =
 
 mergeAttributes :: Attributes -> Attributes -> Attributes
 mergeAttributes a b =
-  a
-    # FObject.fold
-        ( \acc key value -> case b # FObject.lookup key of
-            Maybe.Nothing -> acc # FObject.insert key value
-            Maybe.Just bValue -> acc # FObject.insert key (bValue <> value)
-        )
-        FObject.empty
+  FObject.fold
+    ( \acc key value ->
+        acc
+          # FObject.alter
+              ( Maybe.maybe (Maybe.Just value)
+                  (\bValue -> Maybe.Just $ value <> bValue)
+              )
+              key
+    )
+    b
+    a
