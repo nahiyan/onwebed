@@ -247,8 +247,9 @@ fromFlesh flesh model =
                     , onFocus ToggleHotkeysEnabled
                     , onBlur ToggleHotkeysEnabled
                     , fleshDisabledAttribute model
+                    , value content
                     ]
-                    [ text content ]
+                    []
                 ]
 
         _ ->
