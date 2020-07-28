@@ -9,6 +9,7 @@ import Foreign.Object as FObject
 import Data.Array as Array
 import Prelude
 import Data.Map as Map
+import Data.Tuple as Tuple
 
 isHole :: Xml.Element -> Boolean
 isHole element = case element of
@@ -25,7 +26,7 @@ fill' zipper fills =
       Xml.Element { name, attributes } ->
         if name == "hole" then case attributes # FObject.lookup "id" of
           Maybe.Just id -> case fills # Map.lookup id of
-            Maybe.Just fill_ -> case zipper # Zipper.parent of
+            Maybe.Just (Tuple.Tuple fillType fillItems) -> case zipper # Zipper.parent of
               Maybe.Just parentZipper ->
                 let
                   newChildren =
@@ -34,8 +35,10 @@ fill' zipper fills =
                           ( \acc tree -> case tree # Tree.label of
                               Xml.Element { name: "hole", attributes: attributes_ } -> case attributes_ # FObject.lookup "id" of
                                 Maybe.Just id_ ->
-                                  if id_ == id then
-                                    acc <> fill_
+                                  if id_ == id then case fillType of
+                                    Fills.Set -> acc <> fillItems
+                                    Fills.Append -> acc <> (zipper # Zipper.children) <> fillItems
+                                    Fills.Prepend -> acc <> fillItems <> (zipper # Zipper.children)
                                   else
                                     Array.snoc acc tree
                                 Maybe.Nothing -> Array.snoc acc tree
@@ -44,7 +47,7 @@ fill' zipper fills =
                           []
                 in
                   parentZipper # Zipper.replaceTree (Tree.tree (parentZipper # Zipper.label) newChildren)
-              Maybe.Nothing -> zipper # Zipper.replaceTree (Tree.tree Xml.Root fill_)
+              Maybe.Nothing -> zipper # Zipper.replaceTree (Tree.tree Xml.Root fillItems)
             Maybe.Nothing -> zipper
           Maybe.Nothing -> zipper
         else

@@ -1,22 +1,24 @@
 module Test.Main where
 
+import Prelude
+import Bone.Descriptor as Descriptor
+import Bone.Descriptor.Element.Targets as Targets
+import Data.Map as Map
+import Data.Maybe as Maybe
+import Data.Tuple as Tuple
+import Document.Body.Fills as Fills
+import Document.Body.Holes as Holes
 import Effect (Effect)
 import Effect.Aff (launchAff_)
+import Foreign.Object as FObject
+import Html as Html
+import Html.Elements.Tree as HtmlElementsTree
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
-import Bone.Descriptor.Element.Targets as Targets
-import Xml as Xml
-import Data.Map as Map
-import Prelude
-import Bone.Descriptor as Descriptor
-import Html.Elements.Tree as HtmlElementsTree
-import Foreign.Object as FObject
 import Tree as Tree
-import Document.Body.Fills as Fills
-import Html as Html
-import Data.Maybe as Maybe
+import Xml as Xml
 
 main :: Effect Unit
 main =
@@ -172,7 +174,7 @@ main =
               ( Tree.Tree Xml.Body
                   [ Tree.Tree
                       ( Xml.Element
-                          { name: "fill", attributes: FObject.fromHomogeneous { id: "content" } }
+                          { name: "fill", attributes: FObject.fromHomogeneous { id: "content", class: "prepend" } }
                       )
                       [ Tree.Tree
                           (Xml.Element { name: "p", attributes: FObject.empty })
@@ -183,10 +185,62 @@ main =
               `shouldEqual`
                 ( Map.empty
                     # Map.insert "content"
+                        ( Tuple.Tuple Fills.Prepend
+                            [ Tree.Tree
+                                (Xml.Element { name: "p", attributes: FObject.empty })
+                                [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                            ]
+                        )
+                )
+          it "Fills holes by prepending, appending, and setting" do
+            ( Holes.fill
+                ( Map.singleton "content"
+                    ( Tuple.Tuple Fills.Prepend
                         [ Tree.Tree
                             (Xml.Element { name: "p", attributes: FObject.empty })
                             [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
                         ]
+                    )
+                    # Map.insert "more-content"
+                        ( Tuple.Tuple Fills.Append
+                            [ Tree.Tree
+                                (Xml.Element { name: "p", attributes: FObject.empty })
+                                [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                            ]
+                        )
+                    # Map.insert "even-more-content"
+                        ( Tuple.Tuple Fills.Set
+                            [ Tree.Tree
+                                (Xml.Element { name: "p", attributes: FObject.empty })
+                                [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                            ]
+                        )
+                )
+                ( Tree.tree Xml.Root
+                    [ Tree.tree (Xml.Element { name: "hole", attributes: FObject.fromHomogeneous { id: "content" } })
+                        [ Tree.tree (Xml.Element { name: "span", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Text inside span.") ]
+                        ]
+                    , Tree.tree (Xml.Element { name: "hole", attributes: FObject.fromHomogeneous { id: "more-content" } })
+                        [ Tree.tree (Xml.Element { name: "span", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Text inside span.") ]
+                        ]
+                    , Tree.tree (Xml.Element { name: "hole", attributes: FObject.fromHomogeneous { id: "even-more-content" } })
+                        [ Tree.tree (Xml.Element { name: "span", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Text inside span.") ]
+                        ]
+                    ]
+                )
+            )
+              `shouldEqual`
+                ( Tree.tree Xml.Root
+                    [ Tree.tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton $ Xml.Text "Lorem Ipsum" ]
+                    , Tree.tree
+                        (Xml.Element { name: "span", attributes: FObject.empty })
+                        [ Tree.singleton (Xml.Text "Text inside span.") ]
+                    , Tree.tree
+                        (Xml.Element { name: "span", attributes: FObject.empty })
+                        [ Tree.singleton (Xml.Text "Text inside span.") ]
+                    , Tree.tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton $ Xml.Text "Lorem Ipsum" ]
+                    , Tree.tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton $ Xml.Text "Lorem Ipsum" ]
+                    ]
                 )
         describe "HTML" do
           it "Generates HTML from document content" do
