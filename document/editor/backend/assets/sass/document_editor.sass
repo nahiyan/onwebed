@@ -87,8 +87,22 @@ body
 .flesh
     border-top: 2px solid #007bff
     margin: 1em 0em
+
+    padding-left: 2em
+    padding-right: 2em
+
     textarea
-        margin: 0.5em 1em 1em 1em
+        margin: 0.5em 0em 1em 0em
+
+    .row
+        margin-left: 0em
+
+    .input-group
+        margin: 0.5em 0em 0.5em 0em
+        padding: 0em
+
+    // .input-group:last-child
+    //     margin-right: -1em
 
 .selected
     border-color: #4d55c6
@@ -132,10 +146,7 @@ body
 
 /* Media queries */
 
-@media (min-width: 769px)
-    // #elements
-        // padding: 1.3em
-
+@media (min-width: 576px)
     #menu_header span > div[contenteditable='true']
         background: #F5F5F5
         padding: 0.3em 0.5em 0.3em 0.5em
@@ -146,8 +157,14 @@ body
         padding: 1em
         z-index: 1
 
-@media (min-width: 1024px)
+@media (min-width: 768px)
+    .flesh
+        .input-group
+            margin-right: 1em
 
-@media (min-width: 1216px)
+        .input-group:last-child
+            margin-right: 0em
 
-@media (min-width: 1408px)
+@media (min-width: 992px)
+
+@media (min-width: 1200px)

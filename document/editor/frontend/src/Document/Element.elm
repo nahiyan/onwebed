@@ -3,7 +3,7 @@ module Document.Element exposing (AdditionType(..), Element(..), SelectionPurpos
 
 type Element
     = Bone { id : Int, descriptor : String, alternateHierarchy : Bool, selected : Bool, babyId : Maybe Int }
-    | Flesh { id : Int, targets : String, content : String, selected : Bool, babyId : Maybe Int }
+    | Flesh { id : Int, for : String, attributes : String, content : String, selected : Bool, babyId : Maybe Int }
     | Text String
     | Body
     | Head
@@ -38,4 +38,4 @@ emptyBone babyId =
 
 emptyFlesh : Maybe Int -> Element
 emptyFlesh babyId =
-    Flesh { id = 0, targets = "", content = "", selected = False, babyId = babyId }
+    Flesh { id = 0, for = "", content = "(ignore)", attributes = "(ignore)", selected = False, babyId = babyId }

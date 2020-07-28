@@ -183,48 +183,25 @@ update message model =
                 EndMarkupEditing ->
                     ( { model | mode = Core.Default }, overlay False )
 
-                SetBoneDescriptor index descriptor ->
+                SetElementProperty type_ index property value ->
                     let
                         newBody =
                             Document.Body.replaceElement index
                                 (\element ->
-                                    case element of
-                                        Document.Element.Bone bone ->
-                                            Document.Element.Bone { bone | descriptor = descriptor }
+                                    case ( type_, property, element ) of
+                                        ( Document.Element.Bones, "descriptor", Document.Element.Bone bone ) ->
+                                            Document.Element.Bone { bone | descriptor = value }
 
-                                        _ ->
-                                            element
-                                )
-                                body
-                    in
-                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
+                                        ( Document.Element.FleshItems, "for", Document.Element.Flesh flesh ) ->
+                                            Document.Element.Flesh { flesh | for = value }
 
-                SetFleshTargets index targets ->
-                    let
-                        newBody =
-                            Document.Body.replaceElement index
-                                (\element ->
-                                    case element of
-                                        Document.Element.Flesh flesh ->
-                                            Document.Element.Flesh { flesh | targets = targets }
+                                        ( Document.Element.FleshItems, "content", Document.Element.Flesh flesh ) ->
+                                            Document.Element.Flesh { flesh | content = value }
 
-                                        _ ->
-                                            element
-                                )
-                                body
-                    in
-                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
+                                        ( Document.Element.FleshItems, "attributes", Document.Element.Flesh flesh ) ->
+                                            Document.Element.Flesh { flesh | attributes = value }
 
-                SetFleshContent index content ->
-                    let
-                        newBody =
-                            Document.Body.replaceElement index
-                                (\element ->
-                                    case element of
-                                        Document.Element.Flesh flesh ->
-                                            Document.Element.Flesh { flesh | content = content }
-
-                                        _ ->
+                                        ( _, _, _ ) ->
                                             element
                                 )
                                 body

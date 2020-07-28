@@ -109,7 +109,7 @@ router.get('/edit/:name', function (req, res) {
 })
 
 // Save Document
-router.post('/save/:name', function (req, res) {
+router.post('/save/:name', async function (req, res) {
   const name = req.params.name
   const fileName = name + '.od'
   const document = req.body
@@ -119,11 +119,15 @@ router.post('/save/:name', function (req, res) {
   fs.writeFileSync(path.join(req.app.get('sourceDirectory'), fileName), markup)
 
   // Compile all documents, just in case they got dependencies
-  compiler.compileFromDirectory(req.app.get('sourceDirectory'))(
-    req.app.get('destinationDirectory')
-  )()
+  try {
+    await compiler.compileFromDirectory(req.app.get('sourceDirectory'))(
+      req.app.get('destinationDirectory')
+    )()
 
-  res.send('success')
+    res.send('success')
+  } catch (e) {
+    res.send('Error: Failed to compile documents.')
+  }
 })
 
 // View Document

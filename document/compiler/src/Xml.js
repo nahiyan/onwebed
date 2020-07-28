@@ -3,8 +3,12 @@
 const xmlJs = require('xml-js')
 
 exports.attributesFromString = function (attributesString) {
-  return xmlJs.xml2js('<dummy ' + attributesString + '/>').elements[0]
-    .attributes
+  if (attributesString.trim().length > 0) {
+    return xmlJs.xml2js('<dummy ' + attributesString + '/>').elements[0]
+      .attributes
+  } else {
+    return {}
+  }
 }
 
 exports.toJson = function (xml) {

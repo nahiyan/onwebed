@@ -37,9 +37,7 @@ type KeyInteractionType
 
 
 type Msg
-    = SetBoneDescriptor Int String
-    | SetFleshTargets Int String
-    | SetFleshContent Int String
+    = SetElementProperty Document.Element.SelectionType Int String String
     | SetDocumentName String
     | SetMode Mode
     | SelectElement Int

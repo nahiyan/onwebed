@@ -119,7 +119,7 @@ instance decodeJsonElement :: DecodeJson (Tree Xml.Element) where
                   attributes_ =
                     attributes # FObject.lookup "attributes"
                       # Maybe.maybe Maybe.Nothing \attributesString ->
-                          if String.take 8 attributesString == "(ignore)" then
+                          if String.take 8 attributesString == "(ignore)" || (attributesString # String.trim # String.null) then
                             Maybe.Nothing
                           else
                             Maybe.Just $ attributesString # Xml.attributesFromString

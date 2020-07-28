@@ -2,7 +2,7 @@ module Document.Html exposing (fromDocumentBody, fromDocumentElement)
 
 import Core exposing (Mode, Model, Msg(..))
 import Document.Body
-import Document.Element exposing (Element(..))
+import Document.Element exposing (Element(..), SelectionType(..))
 import Html exposing (Html, div, i, input, span, text, textarea)
 import Html.Attributes exposing (class, id, type_, value)
 import Html.Events exposing (on, onBlur, onFocus, stopPropagationOn, targetValue)
@@ -141,7 +141,7 @@ fromBone bone children model =
                         , value descriptor
                         , class "form-control"
                         , on "input"
-                            (Json.Decode.map (Core.SetBoneDescriptor id) targetValue)
+                            (Json.Decode.map (Core.SetElementProperty Document.Element.Bones id "descriptor") targetValue)
                         , onFocus ToggleHotkeysEnabled
                         , onBlur ToggleHotkeysEnabled
                         , boneDisabledAttribute model
@@ -158,9 +158,9 @@ fromBone bone children model =
 fromFlesh : Element -> Model -> Html Msg
 fromFlesh flesh model =
     case flesh of
-        Flesh { id, targets, content, selected, babyId } ->
+        Flesh { id, for, attributes, content, selected, babyId } ->
             let
-                attributes =
+                attributes_ =
                     List.append
                         [ class
                             ("flesh"
@@ -207,43 +207,78 @@ fromFlesh flesh model =
                         )
             in
             div
-                attributes
+                attributes_
                 [ div
-                    [ class "input-group" ]
+                    [ class "row w-100" ]
                     [ div
-                        [ class "input-group-prepend" ]
+                        [ class "col-md input-group" ]
                         [ div
-                            [ class "input-group-text" ]
-                            [ span
-                                []
+                            [ class "input-group-prepend" ]
+                            [ div
+                                [ class "input-group-text" ]
                                 [ span
-                                    [ class "icon is-small" ]
-                                    [ i
-                                        [ class "fas fa-bullseye mr-2" ]
-                                        []
-                                    ]
-                                , span
                                     []
-                                    [ text "Targets" ]
+                                    [ span
+                                        [ class "icon is-small" ]
+                                        [ i
+                                            [ class "fas fa-bullseye mr-2" ]
+                                            []
+                                        ]
+                                    , span
+                                        []
+                                        [ text "Targets" ]
+                                    ]
                                 ]
                             ]
+                        , input
+                            [ type_ "text"
+                            , value for
+                            , class "form-control"
+                            , on "input"
+                                (Json.Decode.map (Core.SetElementProperty Document.Element.FleshItems id "for") targetValue)
+                            , onFocus ToggleHotkeysEnabled
+                            , onBlur ToggleHotkeysEnabled
+                            , fleshDisabledAttribute model
+                            ]
+                            []
                         ]
-                    , input
-                        [ type_ "text"
-                        , value targets
-                        , class "form-control"
-                        , on "input"
-                            (Json.Decode.map (Core.SetFleshTargets id) targetValue)
-                        , onFocus ToggleHotkeysEnabled
-                        , onBlur ToggleHotkeysEnabled
-                        , fleshDisabledAttribute model
+                    , div
+                        [ class "col-md input-group" ]
+                        [ div
+                            [ class "input-group-prepend" ]
+                            [ div
+                                [ class "input-group-text" ]
+                                [ span
+                                    []
+                                    [ span
+                                        [ class "icon is-small" ]
+                                        [ i
+                                            [ class "fas fa-sliders-h mr-2" ]
+                                            []
+                                        ]
+                                    , span
+                                        []
+                                        [ text "Attributes" ]
+                                    ]
+                                ]
+                            ]
+                        , input
+                            [ type_ "text"
+                            , value attributes
+                            , class "form-control"
+                            , on "input"
+                                (Json.Decode.map (Core.SetElementProperty Document.Element.FleshItems id "attributes") targetValue)
+                            , onFocus ToggleHotkeysEnabled
+                            , onBlur ToggleHotkeysEnabled
+                            , fleshDisabledAttribute model
+                            ]
+                            []
                         ]
-                        []
                     ]
                 , textarea
                     [ class "form-control"
                     , on "input"
-                        (Json.Decode.map (Core.SetFleshContent id) targetValue)
+                        (Json.Decode.map (Core.SetElementProperty Document.Element.FleshItems id "content") targetValue)
                     , onFocus ToggleHotkeysEnabled
                     , onBlur ToggleHotkeysEnabled
                     , fleshDisabledAttribute model

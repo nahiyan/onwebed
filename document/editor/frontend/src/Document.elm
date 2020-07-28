@@ -71,23 +71,24 @@ decoder =
                             -- Flesh
                             _ ->
                                 let
-                                    targets =
-                                        case attributes of
-                                            Nothing ->
-                                                ""
-
-                                            Just justAttributes ->
-                                                case Dict.get "for" justAttributes of
-                                                    Nothing ->
-                                                        ""
-
-                                                    Just justTarget ->
-                                                        justTarget
+                                    ( for, attributes_ ) =
+                                        attributes
+                                            |> Maybe.map
+                                                (\justAttributes ->
+                                                    ( Dict.get "for" justAttributes
+                                                        |> Maybe.map identity
+                                                        |> Maybe.withDefault ""
+                                                    , Dict.get "attributes" justAttributes
+                                                        |> Maybe.map identity
+                                                        |> Maybe.withDefault ""
+                                                    )
+                                                )
+                                            |> Maybe.withDefault ( "", "" )
 
                                     content =
                                         combineTextElements elements
                                 in
-                                Tree.tree (Document.Element.Flesh { id = 0, targets = targets, content = content, selected = False, babyId = Nothing }) []
+                                Tree.tree (Document.Element.Flesh { id = 0, for = for, content = content, attributes = attributes_, selected = False, babyId = Nothing }) []
 
                     -- Text
                     _ ->
@@ -230,8 +231,8 @@ toJsonString document =
                                 Document.Element.Bone { descriptor } ->
                                     xmlElement "bone" [ ( "descriptor", Json.Encode.string descriptor ) ] children
 
-                                Document.Element.Flesh { targets, content } ->
-                                    xmlElement "flesh" [ ( "for", Json.Encode.string targets ) ] [ xmlTextElement content ]
+                                Document.Element.Flesh { for, content, attributes } ->
+                                    xmlElement "flesh" [ ( "for", Json.Encode.string for ), ( "attributes", Json.Encode.string attributes ) ] [ xmlTextElement content ]
 
                                 Document.Element.Root ->
                                     xmlElement "body" [] children
