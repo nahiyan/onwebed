@@ -1,4 +1,4 @@
-module Bone.Descriptor.Element.Targets (fromFleshItems, merge, empty, Targets, TargetProperties(..), TargetType(..)) where
+module Bone.Descriptor.Element.Targets (fromFleshItems, merge, empty, Targets, TargetProperties(..), TargetType(..), apply) where
 
 import Xml as Xml
 import Data.Map as Map
@@ -20,7 +20,18 @@ data TargetProperties
   = TargetProperties TargetType (Maybe.Maybe Xml.Attributes) (Maybe.Maybe String)
 
 type Targets
-  = Map.Map String TargetProperties
+  = Map.Map String (Array TargetProperties)
+
+instance showTargetProperties :: Show TargetProperties where
+  show (TargetProperties a b c) = show a <> " " <> show b <> " " <> show c
+
+instance showTargetType :: Show TargetType where
+  show Append = "Append"
+  show Prepend = "Prepend"
+  show Set = "Set"
+
+instance eqTargetProperties :: Eq TargetProperties where
+  eq a b = show a == show b
 
 fromFleshItems :: Array Xml.Element -> Targets
 fromFleshItems items = fromFleshItems' items Map.empty
@@ -48,7 +59,7 @@ fromFleshItems' items targets = case items # Array.head of
 
                   newTargetProperties = TargetProperties targetType currentItem.attributes currentItem.content
                 in
-                  merge (Map.singleton id newTargetProperties) acc
+                  merge (Map.singleton id [ newTargetProperties ]) acc
             )
             targets
             boneDescriptorElementIds
@@ -59,17 +70,37 @@ fromFleshItems' items targets = case items # Array.head of
 merge :: Targets -> Targets -> Targets
 merge =
   Map.unionWith
-    ( \(TargetProperties type_ attributes content) (TargetProperties oldType oldAttributes oldContent) -> case oldType of
-        Set -> TargetProperties type_ (Maybe.maybe oldAttributes (\justAttributes -> Maybe.Just justAttributes) attributes) (Maybe.maybe oldContent (\justContent -> Maybe.Just justContent) content)
-        Prepend ->
-          TargetProperties oldType
-            (attributes # Maybe.maybe oldAttributes (\justAttributes -> oldAttributes # Maybe.maybe attributes (\justOldAttributes -> Maybe.Just $ Xml.mergeAttributes justAttributes justOldAttributes)))
-            (content # Maybe.maybe oldContent (\justContent -> oldContent # Maybe.maybe content (\justOldContent -> Maybe.Just $ justContent <> justOldContent)))
-        Append ->
-          TargetProperties oldType
-            (attributes # Maybe.maybe oldAttributes (\justAttributes -> oldAttributes # Maybe.maybe attributes (\justOldAttributes -> Maybe.Just $ Xml.mergeAttributes justOldAttributes justAttributes)))
-            (content # Maybe.maybe oldContent (\justContent -> oldContent # Maybe.maybe content (\justOldContent -> Maybe.Just $ justOldContent <> justContent)))
+    ( \new old ->
+        old <> new
     )
+
+apply :: Xml.Attributes -> String -> Array TargetProperties -> Tuple.Tuple Xml.Attributes String
+apply attributes content targetProperties =
+  targetProperties
+    # Array.foldl
+        ( \(Tuple.Tuple attributes_ content_) (TargetProperties type_ attributes__ content__) ->
+            let
+              newAttributes =
+                attributes__
+                  # Maybe.maybe attributes_
+                      ( \justAttributes -> case type_ of
+                          Prepend -> Xml.mergeAttributes justAttributes attributes_
+                          Append -> Xml.mergeAttributes attributes_ justAttributes
+                          Set -> justAttributes
+                      )
+
+              newContent =
+                content__
+                  # Maybe.maybe content_
+                      ( \justContent -> case type_ of
+                          Prepend -> justContent <> content_
+                          Append -> content_ <> justContent
+                          Set -> justContent
+                      )
+            in
+              Tuple.Tuple newAttributes newContent
+        )
+        (Tuple.Tuple attributes content)
 
 empty :: Targets
 empty = Map.empty

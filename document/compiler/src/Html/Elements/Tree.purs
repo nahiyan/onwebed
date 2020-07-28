@@ -18,6 +18,7 @@ import Document.Body.Fills as Fills
 import Document.Body.Holes as Holes
 import Effect as Effect
 import Effect.Unsafe as EffectUnsafe
+import Data.Tuple as Tuple
 
 lastHtmlElementZipper :: Zipper.Zipper Xml.Element -> Zipper.Zipper Xml.Element
 lastHtmlElementZipper zipper = lastHtmlElementZipper' (zipper # Zipper.lastDescendant)
@@ -34,20 +35,23 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
   Array.foldl
     ( \acc element ->
         let
-          targetedProperties = targets # Map.lookup element.id
+          target = targets # Map.lookup element.id
 
-          attributes =
+          attributes_ =
             Xml.attributesFromString element.attributes
               # (if element.htmlId # String.null then identity else FObject.insert "id" element.htmlId)
               # (if element.htmlClass # String.null then identity else FObject.insert "class" element.htmlClass)
 
-          newTreeChildren = case targetedProperties # Maybe.maybe Maybe.Nothing (\(Targets.TargetProperties _ _ targetedText) -> targetedText) of
-            Maybe.Nothing ->
+          Tuple.Tuple attributes content = target # Maybe.maybe (Tuple.Tuple attributes_ "") (\targetProperties -> targetProperties # Targets.apply attributes_ "")
+
+          newTreeChildren =
+            if content # String.null then
               if element.hasClosingTag && element.name /= "fill" then
                 [ Tree.singleton (Xml.Text "") ]
               else
                 []
-            Maybe.Just text -> [ Tree.singleton (Xml.Text text) ]
+            else
+              [ Tree.singleton (Xml.Text content) ]
         in
           acc # Zipper.fromTree
             # lastHtmlElementZipper

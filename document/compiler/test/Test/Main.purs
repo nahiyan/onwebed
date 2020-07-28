@@ -36,9 +36,13 @@ main =
             )
               `shouldEqual`
                 ( Map.singleton "title"
-                    (Targets.TargetProperties Targets.Set Maybe.Nothing (Maybe.Just "This is an amazing title!"))
+                    [ (Targets.TargetProperties Targets.Set Maybe.Nothing (Maybe.Just " is an "))
+                    , (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "amazing "))
+                    , (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "title!"))
+                    , (Targets.TargetProperties Targets.Prepend Maybe.Nothing (Maybe.Just "This"))
+                    ]
                     # Map.insert "content"
-                        (Targets.TargetProperties Targets.Prepend Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
+                        [ (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum")) ]
                 )
           it "Processes targeted attributes" do
             ( Targets.fromFleshItems
@@ -49,7 +53,10 @@ main =
             )
               `shouldEqual`
                 ( Map.singleton "title"
-                    (Targets.TargetProperties Targets.Set (Maybe.Just $ FObject.singleton "class" "container mb-1" # FObject.insert "id" "main-title") Maybe.Nothing)
+                    [ (Targets.TargetProperties Targets.Set (Maybe.Just $ FObject.singleton "class" "container") Maybe.Nothing)
+                    , (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" " mb-1" # FObject.insert "id" "title") Maybe.Nothing)
+                    , (Targets.TargetProperties Targets.Prepend (Maybe.Just $ FObject.singleton "id" "main-") Maybe.Nothing)
+                    ]
                 )
           it "Processes multiple flesh items" do
             ( Targets.fromFleshItems
@@ -58,9 +65,15 @@ main =
                 ]
             )
               `shouldEqual`
-                ( Map.singleton "title" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
-                    # Map.insert "content" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
-                    # Map.insert "body" (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "id" "body") (Maybe.Just "More text"))
+                ( Map.singleton "title"
+                    [ (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
+                    ]
+                    # Map.insert "content"
+                        [ (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "class" "container") (Maybe.Just "Lorem Ipsum"))
+                        ]
+                    # Map.insert "body"
+                        [ (Targets.TargetProperties Targets.Append (Maybe.Just $ FObject.singleton "id" "body") (Maybe.Just "More text"))
+                        ]
                 )
           it "Shouldn't register blank targets of flesh items" do
             ( Targets.fromFleshItems
@@ -70,19 +83,9 @@ main =
                 ]
             )
               `shouldEqual`
-                ( Map.singleton "hey" (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
-                    # Map.insert "now" (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum"))
+                ( Map.singleton "hey" [ (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum")) ]
+                    # Map.insert "now" [ (Targets.TargetProperties Targets.Append Maybe.Nothing (Maybe.Just "Lorem Ipsum")) ]
                 )
-        -- it "Merges targets properly" do
-        --   ( Targets.merge (Map.singleton "title" " the title.")
-        --       ( Map.singleton "title" "This is"
-        --           # Map.insert "content" "Lorem Ipsum"
-        --       )
-        --   )
-        --     `shouldEqual`
-        --       ( Map.singleton "title" "This is the title."
-        --           # Map.insert "content" "Lorem Ipsum"
-        --       )
         describe "Bone Descriptor" do
           it "Processes empty descriptor" do
             Descriptor.toElements "" `shouldEqual` []
@@ -96,7 +99,7 @@ main =
           it "Processes descriptor elements" do
             ( HtmlElementsTree.fromBoneDescriptorElements
                 [ Descriptor.emptyElement { name = "div", id = "content" } ]
-                (Map.singleton "content" "Lorem Ipsum")
+                (Map.singleton "content" [ Targets.TargetProperties Targets.Set Maybe.Nothing $ Maybe.Just "Lorem Ipsum" ])
                 []
                 "src"
             )
