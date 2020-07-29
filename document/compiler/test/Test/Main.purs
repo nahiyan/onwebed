@@ -133,10 +133,13 @@ main =
           it "Processes document content with bone and flesh" do
             HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='div p@content'/><flesh for='content'>Lorem Ipsum</flesh></body></document>" "src" `shouldEqual` (Tree.Tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text ""), Tree.Tree (Xml.Element { name: "p", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ] ], Tree.singleton Xml.Blank ])
           it "Processes document content with holes and fills" do
-            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='hole#content'/><bone descriptor='hole#content2'/><bone descriptor='fill#content p@p'/><bone descriptor='fill#content2 p@p2'/><flesh for='p'>Lorem Ipsum</flesh><flesh for='p2'>Lorem Ipsum2</flesh></body></document>" "src"
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='hole#content span@span'/><bone descriptor='hole#content2'/><bone descriptor='fill#content.append p@p'/><bone descriptor='fill#content2 p@p2'/><flesh for='p span'>Lorem Ipsum</flesh><flesh for='p2'>Lorem Ipsum2</flesh></body></document>" "src"
               `shouldEqual`
                 ( Tree.Tree Xml.Root
                     [ Tree.Tree
+                        (Xml.Element { name: "span", attributes: FObject.empty })
+                        [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
+                    , Tree.Tree
                         (Xml.Element { name: "p", attributes: FObject.empty })
                         [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
                     , Tree.Tree
@@ -245,3 +248,5 @@ main =
         describe "HTML" do
           it "Generates HTML from document content" do
             Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div@content p\"/><flesh for=\"content\">Hey</flesh></body></document>" `shouldEqual` "<div>Hey<p></p>\n</div>"
+          it "Fills holes by appending" do
+            Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div hole#content p@p\"/><bone descriptor=\"fill#content.append span@span\"/><flesh for=\"p span\">Hey</flesh></body></document>" `shouldEqual` "<div>\n  <p>Hey</p><span>Hey</span>\n</div>"

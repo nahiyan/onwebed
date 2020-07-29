@@ -46,7 +46,7 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
 
           newTreeChildren =
             if content # String.null then
-              if element.hasClosingTag && element.name /= "fill" then
+              if element.hasClosingTag && element.name /= "fill" && element.name /= "hole" then
                 [ Tree.singleton (Xml.Text "") ]
               else
                 []
@@ -112,11 +112,12 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
                       Xml.Body -> Tree.tree Xml.Root children
                       _ -> Tree.singleton Xml.Blank
                   )
-
-          fills = bodyRestructured # Fills.fromBody
         in
           bodyRestructured
-            # Holes.fill fills
+            # if shouldFillHoles then
+                Holes.fill $ bodyRestructured # Fills.fromBody
+              else
+                identity
       Maybe.Nothing -> Tree.singleton Xml.Root
     Either.Left _ -> Tree.singleton Xml.Root
   Either.Left _ -> Tree.singleton Xml.Root

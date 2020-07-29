@@ -8,6 +8,8 @@ import Foreign.Object as FObject
 import Data.Maybe as Maybe
 import Prelude
 import Data.Tuple as Tuple
+import Debug.Trace (spy)
+import Data.String as String
 
 data FillType
   = Set
@@ -43,7 +45,7 @@ fromBody' zipper collection =
               fillType =
                 attributes # FObject.lookup "class"
                   # Maybe.maybe Set
-                      ( \fillType_ -> case fillType_ of
+                      ( \fillType_ -> case fillType_ # String.trim of
                           "prepend" -> Prepend
                           "append" -> Append
                           _ -> Set

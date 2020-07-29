@@ -46,7 +46,7 @@ fill' zipper fills =
                           )
                           []
                 in
-                  parentZipper # Zipper.replaceTree (Tree.tree (parentZipper # Zipper.label) newChildren)
+                  parentZipper # Zipper.mapTree (\(Tree.Tree label _) -> Tree.tree label newChildren)
               Maybe.Nothing -> zipper # Zipper.replaceTree (Tree.tree Xml.Root fillItems)
             Maybe.Nothing -> zipper
           Maybe.Nothing -> zipper
