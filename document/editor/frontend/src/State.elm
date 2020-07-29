@@ -42,6 +42,13 @@ port markupToDocumentResult : (String -> msg) -> Sub msg
 port updateMarkup : (String -> msg) -> Sub msg
 
 
+
+-- Autoexpand textarea
+
+
+port expandTextarea : List Int -> Cmd msg
+
+
 generateNextBabyId : Cmd Msg
 generateNextBabyId =
     Random.generate SetNextBabyId (Random.int Random.minInt Random.maxInt)
@@ -49,7 +56,14 @@ generateNextBabyId =
 
 initialize : FlagType -> ( Model, Cmd Msg )
 initialize flags =
-    ( { document = Document.fromJsonString flags.content
+    let
+        document =
+            Document.fromJsonString flags.content
+
+        allFleshIds =
+            document.body |> Maybe.map Document.Body.allFleshIds |> Maybe.withDefault []
+    in
+    ( { document = document
       , machineName = flags.fileName
       , mode = Core.Default
       , hotkeysEnabled = True
@@ -59,7 +73,7 @@ initialize flags =
       , nextBabyId = Nothing
       , saveState = Core.NoSaveRequired
       }
-    , generateNextBabyId
+    , Cmd.batch [ generateNextBabyId, expandTextarea allFleshIds ]
     )
 
 
@@ -93,21 +107,38 @@ update message model =
                     ]
                 )
 
+        saveDocument =
+            let
+                url =
+                    "/save/" ++ model.machineName
+
+                body_ =
+                    Http.stringBody "application/json" (Document.toJsonString model.document)
+
+                expect =
+                    Http.expectString SaveDocumentResult
+            in
+            ( model, Http.post { url = url, body = body_, expect = expect } )
+
+        addElement =
+            \elementType additionType ->
+                let
+                    newElement =
+                        if elementType == Document.Element.Bones then
+                            Document.Element.emptyBone model.nextBabyId
+
+                        else
+                            Document.Element.emptyFlesh model.nextBabyId
+
+                    newBody =
+                        Document.Body.addElementAbsolute additionType newElement body
+                in
+                applyInsertion newBody
+
         ( newModel, command ) =
             case message of
                 AddElement elementType additionType ->
-                    let
-                        newElement =
-                            if elementType == Document.Element.Bones then
-                                Document.Element.emptyBone model.nextBabyId
-
-                            else
-                                Document.Element.emptyFlesh model.nextBabyId
-
-                        newBody =
-                            Document.Body.addElementAbsolute additionType newElement body
-                    in
-                    applyInsertion newBody
+                    addElement elementType additionType
 
                 SetDocumentName name ->
                     let
@@ -127,17 +158,7 @@ update message model =
                     ( { model | document = newDocument, saveState = Core.SaveRequired }, Cmd.none )
 
                 SaveDocument ->
-                    let
-                        url =
-                            "/save/" ++ model.machineName
-
-                        body_ =
-                            Http.stringBody "application/json" (Document.toJsonString model.document)
-
-                        expect =
-                            Http.expectString SaveDocumentResult
-                    in
-                    ( model, Http.post { url = url, body = body_, expect = expect } )
+                    saveDocument
 
                 SaveDocumentResult result ->
                     case result of
@@ -205,8 +226,15 @@ update message model =
                                             element
                                 )
                                 body
+
+                        newCmd =
+                            if type_ == Document.Element.FleshItems && property == "content" then
+                                expandTextarea [ index ]
+
+                            else
+                                Cmd.none
                     in
-                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, Cmd.none )
+                    ( { model | document = { document | body = Just newBody }, saveState = Core.SaveRequired }, newCmd )
 
                 SetMode mode ->
                     ( { model | mode = mode }, Cmd.none )
@@ -243,27 +271,56 @@ update message model =
                         case model.mode of
                             Core.Default ->
                                 if isShiftPressed then
+                                    let
+                                        elementsCount =
+                                            Document.elementsCount model.document
+
+                                        addBone =
+                                            if elementsCount.bone > 0 then
+                                                { before = ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.Before) }, Cmd.none ), after = ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.After) }, Cmd.none ), insideFirst = ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideFirst) }, Cmd.none ), insideLast = ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideLast) }, Cmd.none ) }
+
+                                            else
+                                                let
+                                                    a =
+                                                        addElement Document.Element.Bones Document.Element.First
+                                                in
+                                                { before = a, after = a, insideFirst = a, insideLast = a }
+
+                                        addFlesh =
+                                            if elementsCount.flesh > 0 then
+                                                { before = ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.Before) }, Cmd.none ), after = ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.After) }, Cmd.none ) }
+
+                                            else
+                                                let
+                                                    a =
+                                                        addElement Document.Element.FleshItems Document.Element.Last
+                                                in
+                                                { before = a, after = a }
+                                    in
                                     case key of
-                                        "X" ->
+                                        "R" ->
                                             ( { model | mode = Core.Selection Document.Element.All Document.Element.Removal }, Cmd.none )
 
-                                        "Q" ->
-                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.Before) }, Cmd.none )
+                                        "Z" ->
+                                            addBone.before
 
-                                        "W" ->
-                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.After) }, Cmd.none )
+                                        "X" ->
+                                            addBone.after
 
-                                        "E" ->
-                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideFirst) }, Cmd.none )
+                                        "C" ->
+                                            addBone.insideFirst
 
-                                        "R" ->
-                                            ( { model | mode = Core.Selection Document.Element.Bones (Document.Element.Addition Document.Element.InsideLast) }, Cmd.none )
+                                        "V" ->
+                                            addBone.insideLast
 
                                         "A" ->
-                                            ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.Before) }, Cmd.none )
+                                            addFlesh.before
+
+                                        "D" ->
+                                            addFlesh.after
 
                                         "S" ->
-                                            ( { model | mode = Core.Selection Document.Element.FleshItems (Document.Element.Addition Document.Element.After) }, Cmd.none )
+                                            saveDocument
 
                                         _ ->
                                             ( model, Cmd.none )

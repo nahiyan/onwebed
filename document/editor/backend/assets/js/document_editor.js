@@ -44,3 +44,27 @@ app.ports.overlay.subscribe(function (enable) {
     document.querySelector('html').classList.remove('no-scroll')
   }
 })
+
+const expandTextarea = function (element) {
+  // Reset element height
+  element.style.height = 'inherit'
+
+  // Get the computed styles for the element
+  var computed = window.getComputedStyle(element)
+
+  // Calculate the height
+  var height =
+    parseInt(computed.getPropertyValue('border-top-width'), 10) +
+    parseInt(computed.getPropertyValue('padding-top'), 10) +
+    element.scrollHeight +
+    parseInt(computed.getPropertyValue('padding-bottom'), 10) +
+    parseInt(computed.getPropertyValue('border-bottom-width'), 10)
+
+  element.style.height = height + 'px'
+}
+
+app.ports.expandTextarea.subscribe(function (ids) {
+  ids.forEach(function (id) {
+    expandTextarea(document.querySelector('#element' + id + ' > textarea'))
+  })
+})

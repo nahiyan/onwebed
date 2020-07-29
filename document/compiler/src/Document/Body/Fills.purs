@@ -8,7 +8,6 @@ import Foreign.Object as FObject
 import Data.Maybe as Maybe
 import Prelude
 import Data.Tuple as Tuple
-import Debug.Trace (spy)
 import Data.String as String
 
 data FillType

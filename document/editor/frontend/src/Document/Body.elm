@@ -1,4 +1,4 @@
-module Document.Body exposing (addElementAbsolute, addElementRelative, applyIndex, expireBabyElement, mapElements, markAlternateHierarchy, removeElement, replaceElement)
+module Document.Body exposing (addElementAbsolute, addElementRelative, allFleshIds, applyIndex, expireBabyElement, mapElements, markAlternateHierarchy, removeElement, replaceElement)
 
 import Document.Element exposing (Element(..))
 import Tree exposing (Tree)
@@ -202,3 +202,18 @@ addElementAbsolute type_ element tree =
                 Tree.appendChild newChild
            )
         |> applyIndex
+
+
+allFleshIds : Tree Element -> List Int
+allFleshIds tree =
+    tree
+        |> Tree.foldl
+            (\label acc ->
+                case label of
+                    Flesh { id } ->
+                        id :: acc
+
+                    _ ->
+                        acc
+            )
+            []

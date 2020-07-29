@@ -5,7 +5,7 @@ import Document
 import Document.Element
 import Html exposing (Html, a, button, div, form, h6, i, input, label, nav, span, text)
 import Html.Attributes exposing (attribute, class, href, id, type_)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onBlur, onClick, onFocus, onInput)
 
 
 
@@ -114,6 +114,8 @@ toHtml model =
                         , id "document-name"
                         , Html.Attributes.attribute "value" (Maybe.withDefault "" model.document.name)
                         , onInput SetDocumentName
+                        , onFocus ToggleHotkeysEnabled
+                        , onBlur ToggleHotkeysEnabled
                         ]
                         []
                     ]
