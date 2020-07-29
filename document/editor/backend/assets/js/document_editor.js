@@ -46,14 +46,16 @@ app.ports.overlay.subscribe(function (enable) {
 })
 
 const expandTextarea = function (element) {
+  const scrollX = window.scrollX
+  const scrollY = window.scrollY
+
   // Reset element height
   element.style.height = 'inherit'
 
-  // Get the computed styles for the element
-  var computed = window.getComputedStyle(element)
-
   // Calculate the height
-  var height =
+  // Get the computed styles for the element
+  const computed = window.getComputedStyle(element)
+  const height =
     parseInt(computed.getPropertyValue('border-top-width'), 10) +
     parseInt(computed.getPropertyValue('padding-top'), 10) +
     element.scrollHeight +
@@ -61,6 +63,8 @@ const expandTextarea = function (element) {
     parseInt(computed.getPropertyValue('border-bottom-width'), 10)
 
   element.style.height = height + 'px'
+
+  window.scrollTo(scrollX, scrollY)
 }
 
 app.ports.expandTextarea.subscribe(function (ids) {
