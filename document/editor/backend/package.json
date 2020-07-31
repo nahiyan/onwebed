@@ -8,8 +8,6 @@
     "build": "parcel build assets/js/index.js assets/js/document_editor.js -d public/resources --public-url /resources"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.13.1",
-    "ace-builds": "^1.4.12",
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.0",
     "debug": "~2.6.9",
@@ -27,6 +25,8 @@
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.4",
-    "sass": "^1.26.9"
+    "sass": "^1.26.9",
+    "@fortawesome/fontawesome-free": "^5.13.1",
+    "ace-builds": "^1.4.12"
   }
 }
