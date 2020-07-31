@@ -17,6 +17,8 @@ foreign import minify :: String -> String
 
 foreign import format :: String -> String
 
+foreign import processSpecialText :: String -> String
+
 saveFiles :: Array String -> Array (Effect String) -> Effect Unit
 saveFiles filePaths readFiles =
   Array.zipWith
@@ -34,4 +36,5 @@ fromDocumentContent sourceDirectory content =
     # JsonEncode.encodeJson
     # JsonCore.stringify
     # jsonToXml
+    # processSpecialText
     # format

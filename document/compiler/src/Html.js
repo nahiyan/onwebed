@@ -15,6 +15,14 @@ function minify (html) {
   })
 }
 
+function processSpecialText (html) {
+  return html
+    .replace(/{space}/g, '&nbsp;')
+    .replace(/{tab}/g, '&#9;')
+    .replace(/{new-line}/g, '<br/>')
+}
+
 exports.jsonToXml = jsonToXml
 exports.format = format
 exports.minify = minify
+exports.processSpecialText = processSpecialText
