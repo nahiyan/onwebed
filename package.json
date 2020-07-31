@@ -1,7 +1,6 @@
 {
-  "name": "onwebed-cli",
+  "name": "onwebed",
   "version": "0.1.0",
-  "private": true,
   "main": "./bin/index.js",
   "scripts": {
     "build": "npx spago bundle-app -t bin/index.js",
