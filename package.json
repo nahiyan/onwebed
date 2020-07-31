@@ -22,5 +22,13 @@
     "html-minifier": "^4.0.0",
     "pretty": "^2.0.0",
     "xml-js": "^1.6.11"
-  }
+  },
+  "files": [
+    "/lib/document/*.js",
+    "/bin/*.js",
+    "/document/editor/backend/public",
+    "/document/editor/backend/routes",
+    "/document/editor/backend/views",
+    "/document/editor/backend/app.js"
+  ]
 }
