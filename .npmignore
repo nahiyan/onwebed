@@ -1,6 +1,9 @@
 src/
 document/compiler/
 document/utilities/
+document/editor/frontend/
+document/editor/backend/assets/
+document/editor/backend/node_modules/
 build/
 .psci_modules/
 .spago/
