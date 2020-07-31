@@ -1,4 +1,4 @@
-module Html (saveFiles, fromDocumentContent) where
+module Html (saveFiles, fromDocumentContent, minify) where
 
 import Prelude (Unit, pure, unit, bind, (#))
 import Effect (Effect)
@@ -12,6 +12,8 @@ import Data.Argonaut.Encode as JsonEncode
 import Html.Elements.Tree as HtmlElementsTree
 
 foreign import jsonToXml :: String -> String
+
+foreign import minify :: String -> String
 
 foreign import format :: String -> String
 
@@ -28,7 +30,7 @@ saveFiles filePaths readFiles =
 
 fromDocumentContent :: String -> String -> String
 fromDocumentContent sourceDirectory content =
-  HtmlElementsTree.fromDocumentContent content sourceDirectory
+  HtmlElementsTree.fromDocumentContent (content # minify) sourceDirectory
     # JsonEncode.encodeJson
     # JsonCore.stringify
     # jsonToXml

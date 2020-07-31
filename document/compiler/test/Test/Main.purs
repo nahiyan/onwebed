@@ -248,5 +248,5 @@ main =
         describe "HTML" do
           it "Generates HTML from document content" do
             Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div@content p\"/><flesh for=\"content\">Hey</flesh></body></document>" `shouldEqual` "<div>Hey<p></p>\n</div>"
-          it "Fills holes by appending" do
-            Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div hole#content p@p\"/><bone descriptor=\"fill#content.append span@span\"/><flesh for=\"p span\">Hey</flesh></body></document>" `shouldEqual` "<div>\n  <p>Hey</p><span>Hey</span>\n</div>"
+          it "Contents of flesh items are minified" do
+            Html.fromDocumentContent "src" "<document><body><bone descriptor=\"div@div\"/><flesh for=\"div\">Hey\n    now\nbrown\n            cow!</flesh></body></document>" `shouldEqual` "<div>Hey now brown cow!</div>"

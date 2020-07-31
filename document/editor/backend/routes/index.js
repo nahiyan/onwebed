@@ -7,6 +7,7 @@ const xmlJs = require('xml-js')
 const fs = require('fs')
 const pretty = require('pretty')
 const snakeCase = require('snake-case')
+const minify = require('html-minifier').minify
 
 /* GET home page. */
 router.get('/', async function (req, res, next) {
@@ -97,9 +98,15 @@ router.get('/delete/:name', async function (req, res, next) {
 router.get('/edit/:name', function (req, res) {
   const name = req.params.name
   const content = xmlJs.xml2js(
-    fs.readFileSync(
-      path.join(req.app.get('sourceDirectory'), name + '.od'),
-      'utf8'
+    minify(
+      fs.readFileSync(
+        path.join(req.app.get('sourceDirectory'), name + '.od'),
+        'utf8'
+      ),
+      {
+        keepClosingSlash: true,
+        collapseWhitespace: true
+      }
     )
   )
   res.render('documents/edit', {

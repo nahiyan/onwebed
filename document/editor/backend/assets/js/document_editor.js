@@ -52,7 +52,6 @@ const expandTextarea = function (element) {
   // Reset element height
   element.style.height = 'inherit'
 
-  // Calculate the height
   // Get the computed styles for the element
   const computed = window.getComputedStyle(element)
   const height =

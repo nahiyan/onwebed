@@ -19,6 +19,7 @@
     "spago": "^0.15.3"
   },
   "dependencies": {
+    "html-minifier": "^4.0.0",
     "pretty": "^2.0.0",
     "xml-js": "^1.6.11"
   }
