@@ -14,3 +14,4 @@ document/editor/backend/public/resources/*
 _compiler
 output
 _base
+.psc-ide-port

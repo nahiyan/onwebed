@@ -1,9 +1,9 @@
 module Main where
 
-import Prelude (Unit, apply, map, show, (<>), (=<<))
 import Effect (Effect)
 import Effect.Console (log)
 import Options.Applicative (Parser, argument, execParser, fullDesc, header, help, helper, info, int, long, metavar, option, progDesc, short, str, strOption, switch, value, (<**>))
+import Prelude (Unit, apply, map, show, (<>), (=<<))
 
 foreign import startServer :: String -> String -> Int -> Boolean
 
@@ -50,6 +50,9 @@ argumentsParser = ado
       )
   in { version: version, server: server, port: port, destinationDirectory: destinationDirectory, sourceDirectory: sourceDirectory }
 
+version :: String
+version = "v0.1.0"
+
 main :: Effect Unit
 main = do
   run =<< execParser opts
@@ -57,12 +60,12 @@ main = do
   opts =
     info (argumentsParser <**> helper)
       ( fullDesc
-          <> progDesc "A template system for static web pages."
-          <> header "Onwebed 0.1.0."
+          <> progDesc "A web template system for building static webpages."
+          <> header ("Onwebed " <> version <> ".")
       )
 
 showVersion :: Effect Unit
-showVersion = log "v0.1.0"
+showVersion = log version
 
 run :: Arguments -> Effect Unit
 run arguments =
