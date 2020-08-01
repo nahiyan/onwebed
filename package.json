@@ -1,7 +1,14 @@
 {
   "name": "onwebed",
-  "version": "0.1.3",
+  "version": "0.1.4",
+  "license": "MIT",
   "main": "./bin/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nahiyan/onwebed"
+  },
+  "homepage": "https://github.com/nahiyan/onwebed#readme",
+  "description": "A web template system, designed for crafting static sites.",
   "scripts": {
     "build": "npx spago bundle-app -t bin/index.js",
     "watch": "npx spago build --watch"
@@ -15,21 +22,21 @@
     "onwebed": "./bin/index.js"
   },
   "dependencies": {
-    "html-minifier": "^4.0.0",
-    "pretty": "^2.0.0",
-    "xml-js": "^1.6.11",
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.0",
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "express-flash-message": "^1.0.6",
     "express-session": "^1.17.1",
+    "html-minifier": "^4.0.0",
     "http-errors": "~1.6.3",
     "jquery": "^3.5.1",
     "morgan": "~1.9.1",
     "popper.js": "^1.16.1",
+    "pretty": "^2.0.0",
     "pug": "^3.0.0",
-    "snake-case": "^3.0.3"
+    "snake-case": "^3.0.3",
+    "xml-js": "^1.6.11"
   },
   "files": [
     "/lib/document/*.js",

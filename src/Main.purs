@@ -51,7 +51,7 @@ argumentsParser = ado
   in { version: version, server: server, port: port, destinationDirectory: destinationDirectory, sourceDirectory: sourceDirectory }
 
 version :: String
-version = "v0.1.0"
+version = "v0.1.4"
 
 main :: Effect Unit
 main = do
