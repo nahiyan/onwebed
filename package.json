@@ -11,10 +11,11 @@
   "description": "A web template system, designed for crafting static sites.",
   "scripts": {
     "build:all": "cd document/compiler && npm run build && cd .. && cd utilities && npm run build && cd ../.. && npm run build",
-    "build": "npx spago bundle-app -t bin/index.js",
+    "build": "npx spago bundle-app -t ./bin/index.js && node build-utils/shebash.js",
     "watch": "npx spago build --watch"
   },
   "devDependencies": {
+    "prepend-file": "^2.0.0",
     "purescript": "^0.13.8",
     "purty": "^6.2.0",
     "spago": "^0.15.3"

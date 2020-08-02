@@ -1,24 +1,24 @@
 module Html.Elements.Tree (fromBoneDescriptorElements, fromDocumentContent, fromDocumentName) where
 
+import Prelude
 import Bone.Descriptor as Descriptor
 import Bone.Descriptor.Element.Targets as Targets
-import Tree as Tree
-import Tree.Zipper as Zipper
-import Xml as Xml
-import Data.Array as Array
-import Data.Maybe as Maybe
-import Data.Map as Map
-import Data.String as String
-import Foreign.Object as FObject
-import Prelude
 import Data.Argonaut.Decode as JsonDecode
 import Data.Argonaut.Parser as Parser
+import Data.Array as Array
 import Data.Either as Either
+import Data.Map as Map
+import Data.Maybe as Maybe
+import Data.String as String
+import Data.Tuple as Tuple
 import Document.Body.Fills as Fills
 import Document.Body.Holes as Holes
 import Effect as Effect
 import Effect.Unsafe as EffectUnsafe
-import Data.Tuple as Tuple
+import Foreign.Object as FObject
+import Tree as Tree
+import Tree.Zipper as Zipper
+import Xml as Xml
 
 lastHtmlElementZipper :: Zipper.Zipper Xml.Element -> Zipper.Zipper Xml.Element
 lastHtmlElementZipper zipper = lastHtmlElementZipper' (zipper # Zipper.lastDescendant)
@@ -31,7 +31,7 @@ lastHtmlElementZipper' zipper = case zipper # Zipper.tree of
     Maybe.Nothing -> zipper # Zipper.root
 
 fromBoneDescriptorElements :: Array Descriptor.Element -> Targets.Targets -> Array (Tree.Tree Xml.Element) -> String -> Tree.Tree Xml.Element
-fromBoneDescriptorElements elements targets endChildren sourceDirectory =
+fromBoneDescriptorElements elements targets boneChildren sourceDirectory =
   Array.foldl
     ( \acc element ->
         let
@@ -62,7 +62,7 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
                         if element.name /= "page" then
                           Array.snoc children $ Tree.tree (Xml.Element { name: element.name, attributes: attributes }) newTreeChildren
                         else case attributes # FObject.lookup "id" of
-                          Maybe.Just id -> Tree.children $ EffectUnsafe.unsafePerformEffect $ fromDocumentName id sourceDirectory targets
+                          Maybe.Just id -> children <> (Tree.children $ EffectUnsafe.unsafePerformEffect $ fromDocumentName id sourceDirectory targets)
                           Maybe.Nothing -> Array.snoc children $ Tree.singleton Xml.Blank
                     in
                       Tree.tree label newChildren
@@ -71,14 +71,11 @@ fromBoneDescriptorElements elements targets endChildren sourceDirectory =
     )
     (Tree.singleton Xml.Root)
     elements
-    # Tree.children
-    # Array.head
-    # Maybe.fromMaybe (Tree.singleton Xml.Root)
     # Zipper.fromTree
     # lastHtmlElementZipper
     # Zipper.mapTree
         ( \(Tree.Tree label children) ->
-            Tree.tree label (children <> endChildren)
+            Tree.tree label (children <> boneChildren)
         )
     # Zipper.toTree
 
@@ -104,12 +101,21 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
 
           combinedTargets = Targets.merge targets (Targets.fromFleshItems fleshItems)
 
+          processChildren children =
+            children
+              # Array.foldl
+                  ( \acc child -> case child # Tree.label of
+                      Xml.Bone bone -> acc <> (fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets (child # Tree.children) sourceDirectory # Tree.children)
+                      _ -> child # Array.snoc acc
+                  )
+                  []
+
           bodyRestructured =
             body
               # Tree.restructure identity
-                  ( \element children -> case element of
-                      Xml.Bone bone -> fromBoneDescriptorElements (Descriptor.toElements bone.descriptor) combinedTargets children sourceDirectory
-                      Xml.Body -> Tree.tree Xml.Root children
+                  ( \label children -> case label of
+                      Xml.Body -> Tree.tree Xml.Root $ processChildren children
+                      Xml.Bone bone -> Tree.tree label $ processChildren children
                       _ -> Tree.singleton Xml.Blank
                   )
         in
@@ -123,8 +129,6 @@ fromDocumentContent' content targets sourceDirectory shouldFillHoles = case Xml.
   Either.Left _ -> Tree.singleton Xml.Root
 
 fromDocumentName :: String -> String -> Targets.Targets -> Effect.Effect (Tree.Tree Xml.Element)
-fromDocumentName name sourceDirectory targets =
-  bind (Xml.fromDocumentName name sourceDirectory)
-    ( \content ->
-        pure $ fromDocumentContent' content targets sourceDirectory false
-    )
+fromDocumentName name sourceDirectory targets = do
+  content <- Xml.fromDocumentName name sourceDirectory
+  pure $ fromDocumentContent' content targets sourceDirectory false

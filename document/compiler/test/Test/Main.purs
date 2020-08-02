@@ -106,9 +106,9 @@ main =
                 "src"
             )
               `shouldEqual`
-                Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ]
-          it "Processes document content with nested bone" do
-            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='html'><bone descriptor='head body'/></bone></body></document>" "src"
+                Tree.tree Xml.Root [ Tree.Tree (Xml.Element { name: "div", attributes: FObject.empty }) [ Tree.singleton (Xml.Text "Lorem Ipsum") ] ]
+          it ("Processes document content with nested bone") do
+            HtmlElementsTree.fromDocumentContent ("<document><body><bone descriptor='html'><bone descriptor='head body'/></bone></body></document>") "src"
               `shouldEqual`
                 ( Tree.Tree Xml.Root
                     [ Tree.Tree
@@ -169,6 +169,27 @@ main =
                             ]
                         ]
                     , Tree.singleton Xml.Blank
+                    ]
+                )
+          it "Processes external documents" do
+            HtmlElementsTree.fromDocumentContent "<document><body><bone descriptor='page#base'/></body></document>" "test/site"
+              `shouldEqual`
+                ( Tree.Tree Xml.Root
+                    [ Tree.tree
+                        ( Xml.Element
+                            { name: "h1", attributes: FObject.empty }
+                        )
+                        [ Tree.singleton $ Xml.Text "" ]
+                    , Tree.tree
+                        ( Xml.Element
+                            { name: "p", attributes: FObject.empty }
+                        )
+                        [ Tree.singleton $ Xml.Text "" ]
+                    , Tree.tree
+                        ( Xml.Element
+                            { name: "div", attributes: FObject.empty }
+                        )
+                        [ Tree.singleton $ Xml.Text "" ]
                     ]
                 )
         describe "Document Fills" do
