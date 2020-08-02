@@ -10,6 +10,7 @@
   "homepage": "https://github.com/nahiyan/onwebed#readme",
   "description": "A web template system, designed for crafting static sites.",
   "scripts": {
+    "build:all": "cd document/compiler && npm run build && cd .. && cd utilities && npm run build && cd ../.. && npm run build",
     "build": "npx spago bundle-app -t bin/index.js",
     "watch": "npx spago build --watch"
   },

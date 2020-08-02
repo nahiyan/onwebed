@@ -1,0 +1,7 @@
+<document>
+    <body>
+        <bone descriptor='h1' />
+        <bone descriptor='p' />
+        <bone descriptor='div' />
+    </body>
+</document>
