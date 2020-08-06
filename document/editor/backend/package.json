@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
     "watch": "parcel watch assets/js/index.js assets/js/document_editor.js -d public/resources --public-url /resources",
     "build": "parcel build assets/js/index.js assets/js/document_editor.js -d public/resources --public-url /resources"
   },
