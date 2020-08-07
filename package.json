@@ -10,7 +10,7 @@
   "homepage": "https://github.com/nahiyan/onwebed#readme",
   "description": "A web template system, designed for crafting static sites.",
   "scripts": {
-    "build:all": "cd document/compiler && npm run build && cd .. && cd utilities && npm run build && cd ../editor/backend && npm run build && cd ../.. && npm run build",
+    "build:all": "cd document/compiler && npm run build && cd .. && cd utilities && npm run build && cd ../.. && node build-utils/clear_editor_backend_resources.js && cd document/editor/backend && npm run build && cd ../../.. && npm run build",
     "build": "npx spago bundle-app -t ./bin/index.js && node build-utils/shebash.js",
     "watch": "npx spago build --watch"
   },
@@ -18,6 +18,7 @@
     "prepend-file": "^2.0.0",
     "purescript": "^0.13.8",
     "purty": "^6.2.0",
+    "rimraf": "^3.0.2",
     "spago": "^0.15.3"
   },
   "bin": {
