@@ -4,60 +4,71 @@ const path = require('path')
 const logger = require('morgan')
 const { flash } = require('express-flash-message')
 const session = require('express-session')
+const http = require('http')
 
 const indexRouter = require('./routes/index')
 const bodyParser = require('body-parser')
 
-var app = express()
+module.exports.start = function (sourceDirectory) {
+  return function (destinationDirectory) {
+    return function (port) {
+      var app = express()
 
-// Session
-app.set('trust proxy', 1) // trust first proxy
-app.use(
-  session({
-    secret: 'secret',
-    key: 'onwebed',
-    cookie: {
-      httpOnly: true,
-      secure: false,
-      maxAge: null
-    },
-    saveUninitialized: false,
-    resave: false
-  })
-)
+      app.set('sourceDirectory', sourceDirectory)
+      app.set('destinationDirectory', destinationDirectory)
 
-// Flash messages
-app.use(flash())
+      // Session
+      app.set('trust proxy', 1) // trust first proxy
+      app.use(
+        session({
+          secret: 'secret',
+          key: 'onwebed',
+          cookie: {
+            httpOnly: true,
+            secure: false,
+            maxAge: null
+          },
+          saveUninitialized: false,
+          resave: false
+        })
+      )
 
-// Body parser
-app.use(bodyParser.urlencoded({ extended: true }))
+      // Flash messages
+      app.use(flash())
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'pug')
+      // Body parser
+      app.use(bodyParser.urlencoded({ extended: true }))
 
-app.use(logger('dev'))
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
-app.use(express.static(path.join(__dirname, 'public')))
+      // view engine setup
+      app.set('views', path.join(__dirname, 'views'))
+      app.set('view engine', 'pug')
 
-// Routing
-app.use('/', indexRouter)
+      app.use(logger('dev'))
+      app.use(express.json())
+      app.use(express.urlencoded({ extended: false }))
+      app.use(express.static(path.join(__dirname, 'public')))
+      app.use('/static', express.static(path.resolve(destinationDirectory)))
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404))
-})
+      // Routing
+      app.use('/', indexRouter)
 
-// error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
+      // catch 404 and forward to error handler
+      app.use(function (req, res, next) {
+        next(createError(404))
+      })
 
-  // render the error page
-  res.status(err.status || 500)
-  res.render('base/error')
-})
+      // error handler
+      app.use(function (err, req, res, next) {
+        // set locals, only providing error in development
+        res.locals.message = err.message
+        res.locals.error = req.app.get('env') === 'development' ? err : {}
 
-module.exports = app
+        // render the error page
+        res.status(err.status || 500)
+        res.render('base/error')
+      })
+
+      http.createServer(app).listen(port)
+    }
+  }
+}

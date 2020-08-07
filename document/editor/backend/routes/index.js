@@ -148,12 +148,12 @@ router.get('/view/:name', function (req, res) {
       req.app.get('destinationDirectory')
     )()
 
-    const content = fs.readFileSync(
-      path.join(req.app.get('destinationDirectory'), name + '.html')
-    )
+    // const content = fs.readFileSync(
+    //   path.join(req.app.get('destinationDirectory'), name + '.html')
+    // )
 
     res.set('Content-Type', 'text/html')
-    res.end(content)
+    res.redirect(path.join('/static', name + '.html'))
   } else {
     res.set('Content-Type', 'text/html')
     res.end('The page is private.')
