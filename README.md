@@ -2,6 +2,10 @@
 
 A simple and easy-to-use [web template system](https://en.wikipedia.org/wiki/Web_template_system), designed for crafting static sites.
 
+## Contributors
+- [Nahiyan Alamgir](https://github.com/nahiyan): Development and planning
+- [Momena Akhter Shukhi](https://github.com/MomenaAkhter): Testing and planning
+
 ## Features
 
 - **Markup Language**. Templating is done through a markup language.
