@@ -23,9 +23,9 @@
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.4",
-    "sass": "^1.26.9",
     "@fortawesome/fontawesome-free": "^5.13.1",
-    "ace-builds": "^1.4.12"
+    "ace-builds": "^1.4.12",
+    "parcel-bundler": "^1.12.4",
+    "sass": "^1.26.9"
   }
 }

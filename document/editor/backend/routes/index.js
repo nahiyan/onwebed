@@ -9,11 +9,11 @@ const pretty = require('pretty')
 const snakeCase = require('snake-case')
 const minify = require('html-minifier').minify
 
-/* GET home page. */
+// Homepage
 router.get('/', async function (req, res, next) {
   const sourceDirectory = req.app.get('sourceDirectory')
 
-  var documents = fs
+  const documents = fs
     .readdirSync(sourceDirectory, 'utf8')
     .filter(document.isDocument)
     .map(function (file) {
@@ -27,7 +27,7 @@ router.get('/', async function (req, res, next) {
         { compact: true }
       )
 
-      var name = ''
+      let name = ''
       if (
         elements.document !== undefined &&
         elements.document.head !== undefined &&
@@ -54,6 +54,7 @@ router.get('/new', function (req, res, next) {
     title: 'Onwebed - Create New Document'
   })
 })
+
 router.post('/new', async function (req, res, next) {
   const name = req.body.name
   const sourceDirectory = req.app.get('sourceDirectory')
@@ -148,16 +149,31 @@ router.get('/view/:name', function (req, res) {
       req.app.get('destinationDirectory')
     )()
 
-    // const content = fs.readFileSync(
-    //   path.join(req.app.get('destinationDirectory'), name + '.html')
-    // )
-
     res.set('Content-Type', 'text/html')
     res.redirect(path.join('/static', name + '.html'))
   } else {
     res.set('Content-Type', 'text/html')
     res.end('The page is private.')
   }
+})
+
+// View placeholders
+router.get('/placeholders', async function (req, res, next) {
+  const sourceDirectory = req.app.get('sourceDirectory')
+  const placeholdersFile = path.join(sourceDirectory, 'placeholders.json')
+
+  let placeholders = []
+  if (fs.existsSync(placeholdersFile)) {
+    placeholders = JSON.parse(fs.readFileSync(placeholdersFile))
+  }
+
+  res.render('placeholders/index', {
+    title: 'Onwebed - Placeholders',
+    placeholders: placeholders,
+    sourceDirectory: req.app.get('sourceDirectory'),
+    messagesDanger: await req.consumeFlash('danger'),
+    messagesSuccess: await req.consumeFlash('success')
+  })
 })
 
 module.exports = router

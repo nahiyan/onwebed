@@ -20,7 +20,7 @@ The markup language has been designed with clean and simple visual editing in mi
 
 Onwebed is bundled as a node.js package. You install it through npm: `npm install onwebed`.
 
-Similarly, you can use yarn for installation: `yarn install onwebed`.
+Similarly, you can use yarn for installation: `yarn add onwebed`.
 
 ## Getting Started
 

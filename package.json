@@ -15,6 +15,8 @@
     "watch": "npx spago build --watch"
   },
   "devDependencies": {
+    "elm-hot": "^1.1.6",
+    "node-elm-compiler": "^5.0.6",
     "prepend-file": "^2.0.0",
     "purescript": "^0.13.8",
     "purty": "^6.2.0",

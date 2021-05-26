@@ -12,7 +12,7 @@ const bodyParser = require('body-parser')
 module.exports.start = function (sourceDirectory) {
   return function (destinationDirectory) {
     return function (port) {
-      var app = express()
+      const app = express()
 
       app.set('sourceDirectory', sourceDirectory)
       app.set('destinationDirectory', destinationDirectory)
