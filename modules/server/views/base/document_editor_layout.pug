@@ -1,0 +1,16 @@
+doctype html
+block variables
+head
+  meta(charset='utf-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  
+body
+  input(type='hidden' value=content id='content')
+  input(type='hidden' value=name id='name')
+  block content
+    p Content?
+
+  script(type='text/javascript')
+    | var global = global || window;
+  script(src="/resources/document_editor.js")

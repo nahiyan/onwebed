@@ -10,9 +10,9 @@
   "homepage": "https://github.com/nahiyan/onwebed#readme",
   "description": "A web template system, designed for crafting static sites.",
   "scripts": {
-    "build:all": "cd document/compiler && npm run build && cd .. && cd utilities && npm run build && cd ../.. && node build-utils/clear_editor_backend_resources.js && cd document/editor/backend && npm run build && cd ../../.. && npm run build",
-    "build": "npx spago bundle-app -t ./bin/index.js && node build-utils/shebash.js",
-    "watch": "npx spago build --watch"
+    "build:all:dev": "cd modules/compiler && yarn build:dev && cd .. && cd utilities && yarn build:dev && cd ../.. && node build-utils/clear-editor-backend-resources.js && cd modules/server && yarn build:dev && cd ../../ && yarn build:dev",
+    "build:dev": "npx spago bundle-app -t ./bin/index.js && node build-utils/insert-shebash.js",
+    "watch:dev": "npx spago build --watch"
   },
   "devDependencies": {
     "elm-hot": "^1.1.6",
@@ -44,11 +44,11 @@
     "xml-js": "^1.6.11"
   },
   "files": [
-    "/lib/document/*.js",
+    "/modules/build/*.js",
     "/bin/*.js",
-    "/document/editor/backend/public",
-    "/document/editor/backend/routes",
-    "/document/editor/backend/views",
-    "/document/editor/backend/app.js"
+    "/modules/server/public",
+    "/modules/server/routes",
+    "/modules/server/views",
+    "/modules/server/app.js"
   ]
 }

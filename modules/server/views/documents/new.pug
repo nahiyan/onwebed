@@ -1,0 +1,11 @@
+extends ../base/layout
+
+block content
+  h1 Create New Document
+
+  form(method='POST')
+    div.mb-3
+      label(for='name').form-label Name
+      input#name.form-control(type='text', name='name', aria-describedby="name-help-block")
+      div.form-text#name-help-block Example: "Homepage". This name will be only used for recognizing the document. Machine name of this document will be a snake-cased version of this.
+    button.btn.btn-outline-success(type='submit') Create

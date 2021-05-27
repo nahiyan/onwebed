@@ -1,7 +1,7 @@
 'use strict'
 
-const compiler = require('../lib/document/compiler')
-const app = require('../document/editor/backend/app')
+const compiler = require('../modules/build/compiler')
+const app = require('../modules/server/app')
 
 function startServer (sourceDirectory) {
   return function (destinationDirectory) {

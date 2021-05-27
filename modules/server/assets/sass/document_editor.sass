@@ -1,0 +1,156 @@
+$box_border_size: 2px
+
+body
+    // font-family: 'Inconsolata', sans-serif
+    font-size: 1rem
+    // overflow: hidden
+    margin: 0px
+
+.no-scroll
+    overflow: hidden
+
+.hide
+    display: none
+
+/* Menu */
+
+#menu
+    background: white
+    border-bottom: 1px solid #CCC
+    min-width: 100%
+    box-shadow: 0px 2px 10px #CCC
+
+    span.icon
+        margin-right: .5em
+
+    .container
+        display: flex
+        flex-wrap: wrap
+
+        & > a, & > button, & > div, & > form
+            margin: 0.3em
+
+    .dropdown-menu .dropdown-item
+        cursor: pointer
+
+    .form-inline
+        margin-left: 0.5em
+/* Elements */
+
+#document
+    font-family: 'Inconsolata', sans-serif
+    padding-top: 9.5em
+
+    #elements
+        padding: 0em 0.3em 1.5em 0.3em
+
+    #elements > .bone
+        // dealing with collapsing margin
+        margin: 1em 0em
+        width: 100%
+
+    .hide
+        display: none
+
+.bone, .flesh
+    margin: 0.5em 1em 0.5em 1em
+    border-radius: 3px
+    border: $box_border_size solid #DDD
+    padding: 1em
+    width: 100%
+    display: flex
+    flex-wrap: wrap
+    align-content: space-between
+    align-items: flex-start
+
+    .input-group
+        margin: 0.5em 1em 0.5em 1em
+
+.bone.baby, .flesh.baby
+    border: 2px solid lightgreen
+
+.bone.alternate
+    border-style: dashed
+
+.flesh
+    border-top: 2px solid #007bff
+    margin: 1em 0em
+
+    padding-left: 2em
+    padding-right: 2em
+
+    textarea
+        overflow: hidden
+        margin: 0.5em 0em 1em 0em
+
+    .row
+        margin-left: 0em
+
+    .input-group
+        margin: 0.5em 0em 0.5em 0em
+        padding: 0em
+
+.selected
+    border-color: #4d55c6
+
+    input:hover, textarea:hover
+        cursor: pointer
+
+.selected:hover
+    cursor: pointer
+
+.no-selection
+    opacity: 0.5
+
+/* Miscellaneous */
+
+:focus, .box-label div:focus, input:focus, .content div:focus, .header div:focus
+    outline: none
+
+.unselectable
+    -webkit-touch-callout: none
+    -webkit-user-select: none
+    -khtml-user-select: none
+    -moz-user-select: none
+    -ms-user-select: none
+    user-select: none
+
+.modal
+    overflow-y: scroll
+
+    .modal-content
+        z-index: 1060
+
+        .modal-body
+            padding: 0em
+            #markup-editor
+                font-size: 1em
+                font-family: monospace
+
+.modal.show
+    display: block
+
+/* Media queries */
+
+@media (min-width: 576px)
+    #menu_header span > div[contenteditable='true']
+        background: #F5F5F5
+        padding: 0.3em 0.5em 0.3em 0.5em
+
+    #menu
+        position: fixed
+        top: 0px
+        padding: 1em
+        z-index: 1
+
+@media (min-width: 768px)
+    .flesh
+        .input-group
+            margin-right: 1em
+
+        .input-group:last-child
+            margin-right: 0em
+
+@media (min-width: 992px)
+
+@media (min-width: 1200px)

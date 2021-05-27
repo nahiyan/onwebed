@@ -1,0 +1,17 @@
+nav.navbar.navbar-expand-lg.navbar-light.bg-light
+  div.container
+    a.navbar-brand(href='/')
+      b Onwebed
+    button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+    #navbarSupportedContent.collapse.navbar-collapse
+      ul.navbar-nav.me-auto
+        li.nav-item
+          a.nav-link(href='/') Documents
+        li.nav-item
+          a.nav-link(href='/placeholders') Placeholders
+      form.row.row-cols-lg-auto.g-2.align-items-center
+        div.col-12
+          input.form-control.me-sm-2(type='search' placeholder='Search' aria-label='Search' name='search')
+        div.col-12
+          button.btn.btn-outline-success.my-2.my-sm-0(type='submit') Search
