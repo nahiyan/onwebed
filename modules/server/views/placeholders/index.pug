@@ -1,4 +1,9 @@
-extends ../base/layout
+extends ../layouts/main
 
 block content
-  h1 List of placeholders
+  input(type='hidden' value=content id='content')
+  div#app Loading...
+
+  script(type='text/javascript')
+    | var global = global || window;
+  script(src="/resources/placeholders_editor.js")

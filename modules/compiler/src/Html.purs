@@ -17,14 +17,14 @@ foreign import minify :: String -> String
 
 foreign import format :: String -> String
 
-foreign import processSpecialText :: String -> String
+foreign import processPlaceholders :: String -> String -> String
 
 saveFiles :: Array String -> Array (Effect String) -> Effect Unit
 saveFiles filePaths readFiles =
   Array.zipWith
     ( \filePath readFile -> do
         content <- readFile
-        (log ("Written " <> filePath)) <> FSSync.writeTextFile Encoding.UTF8 filePath content
+        (log ("Generated " <> filePath)) <> FSSync.writeTextFile Encoding.UTF8 filePath content
     )
     filePaths
     readFiles
@@ -36,5 +36,5 @@ fromDocumentContent sourceDirectory content =
     # JsonEncode.encodeJson
     # JsonCore.stringify
     # jsonToXml
-    # processSpecialText
+    # processPlaceholders sourceDirectory
     # format

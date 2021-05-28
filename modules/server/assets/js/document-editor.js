@@ -1,6 +1,6 @@
 import './index.js'
 import { Elm } from '../elm/document-editor/src/Main.elm'
-import '../sass/document_editor.sass'
+import '../sass/document-editor.sass'
 import { json2xml, xml2json } from 'xml-js'
 import ace from 'ace-builds/src-noconflict/ace'
 const pretty = require('pretty')
@@ -11,7 +11,7 @@ const content = document.getElementById('content').value
 const name = document.getElementById('name').value
 
 const app = Elm.Main.init({
-  node: document.getElementById('document-body'),
+  node: document.getElementById('app'),
   flags: {
     content: content,
     fileName: name

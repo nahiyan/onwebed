@@ -71,11 +71,15 @@ run :: Arguments -> Effect Unit
 run arguments =
   if arguments.server then
     if (startServer arguments.sourceDirectory arguments.destinationDirectory arguments.port) then
-      log ("Server started at: localhost:" <> (show arguments.port))
+      log
+        ( "Source directory: "
+            <> (show arguments.sourceDirectory)
+            <> "\nServer started at: localhost:"
+            <> (show arguments.port)
+        )
     else
       log "Failed to start server."
+  else if arguments.version then
+    showVersion
   else
-    if arguments.version then
-      showVersion
-    else
-      compileFromDirectory arguments.sourceDirectory arguments.destinationDirectory
+    compileFromDirectory arguments.sourceDirectory arguments.destinationDirectory

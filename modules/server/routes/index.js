@@ -8,6 +8,7 @@ const fs = require('fs')
 const pretty = require('pretty')
 const snakeCase = require('snake-case')
 const minify = require('html-minifier').minify
+const jsonFormat = require('json-format')
 
 // Homepage
 router.get('/', async function (req, res, next) {
@@ -162,17 +163,29 @@ router.get('/placeholders', async function (req, res, next) {
   const sourceDirectory = req.app.get('sourceDirectory')
   const placeholdersFile = path.join(sourceDirectory, 'placeholders.json')
 
-  let placeholders = []
+  let placeholders = JSON.stringify([])
   if (fs.existsSync(placeholdersFile)) {
-    placeholders = JSON.parse(fs.readFileSync(placeholdersFile))
+    placeholders = fs.readFileSync(placeholdersFile, 'utf8')
   }
 
   res.render('placeholders/index', {
     title: 'Onwebed - Placeholders',
-    placeholders: placeholders,
-    sourceDirectory: req.app.get('sourceDirectory'),
+    content: placeholders,
     messagesDanger: await req.consumeFlash('danger'),
     messagesSuccess: await req.consumeFlash('success')
+  })
+})
+
+// Save placeholders
+router.post('/placeholders/save', async function (req, res) {
+  const placeholders = req.body
+
+  fs.writeFile(path.join(req.app.get('sourceDirectory'), 'placeholders.json'), jsonFormat(placeholders, { type: 'space', size: 2 }), (err) => {
+    if (err) {
+      res.send('Error: Failed to save placeholders.')
+      return
+    }
+    res.send('success')
   })
 })
 

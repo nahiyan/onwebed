@@ -6,7 +6,7 @@ node_modules
 elm-stuff
 .elm-analyse
 /modules/build
-/document/editor/backend/public/resources/*
+/modules/server/public/resources/*
 .spago
 .psci_modules
 .purs-repl

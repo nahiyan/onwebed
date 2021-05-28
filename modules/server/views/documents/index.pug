@@ -1,11 +1,11 @@
-extends ../base/layout
+extends ../layouts/main
 
 block content
   div.d-flex.mb-3
     a.btn.btn-outline-success(href='/new')
       i.fas.fa-plus.me-2
       | New
-    button.btn.btn-outline-primary.ms-auto(type='button', data-bs-toggle="collapse", data-bs-target="#parametersCollapse", aria-expanded="false", aria-controls="parametersCollapse")
+    button.btn.btn-outline-primary.ms-auto(type='button' data-bs-toggle="collapse" data-bs-target="#parametersCollapse" aria-expanded="false" aria-controls="parametersCollapse")
       i.fas.fa-info.me-2
       | Parameters
   div.collapse#parametersCollapse
@@ -21,17 +21,19 @@ block content
           span= destinationDirectory
 
   h1 List of Documents
-  table.table.table-striped
+  table.table.table-striped.align-middle#list-of-documents
     thead
       tr
+        th(scope="col") #
         th(scope="col") Machine Name
         th(scope="col") Name
         th(scope="col") Actions
     tbody
-      each document in documents
+      each document, index in documents
         tr
+          td= index + 1
           td
-            a(href='view/' + document.machineName, target='_blank')= document.machineName
+            a(href='view/' + document.machineName, target='_blank').link-primary= document.machineName
           td= document.name
           td
             a(href="edit/" + document.machineName).btn.btn-outline-primary Edit

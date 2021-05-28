@@ -3,6 +3,8 @@
 const xmlJs = require('xml-js')
 const format = require('pretty')
 const minify_ = require('html-minifier').minify
+const path = require('path')
+const fs = require('fs')
 
 function jsonToXml (json) {
   return xmlJs.json2xml(json)
@@ -15,14 +17,25 @@ function minify (html) {
   })
 }
 
-function processSpecialText (html) {
-  return html
-    .replace(/{space}/g, '&nbsp;')
-    .replace(/{tab}/g, '&#9;')
-    .replace(/{new-line}/g, '<br/>')
+function processPlaceholders (sourceDirectory) {
+  return function (html) {
+    const placeholders = JSON.parse(fs.readFileSync(path.join(sourceDirectory, 'placeholders.json'), 'utf8'))
+
+    const map = {}
+
+    placeholders.forEach(function (placeholder) {
+      map['{' + placeholder.key + '}'] = placeholder.value
+    })
+
+    const regex = new RegExp(Object.keys(map).join('|'), 'gi')
+
+    return html.replace(regex, function (match) {
+      return map[match]
+    })
+  }
 }
 
 exports.jsonToXml = jsonToXml
 exports.format = format
 exports.minify = minify
-exports.processSpecialText = processSpecialText
+exports.processPlaceholders = processPlaceholders
