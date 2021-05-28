@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Browser
-import Debug exposing (toString)
 import Html exposing (Html, button, div, h1, hr, i, input, table, tbody, td, text, textarea, th, thead, tr)
 import Html.Attributes exposing (attribute, class, disabled, id, scope, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -55,7 +54,7 @@ view model =
                 (\index placeholder ->
                     tr []
                         [ th [ scope "row" ]
-                            [ text <| toString <| index + 1 ]
+                            [ text <| String.fromInt <| index + 1 ]
                         , td []
                             [ input
                                 [ class "form-control"

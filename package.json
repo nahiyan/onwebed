@@ -10,9 +10,10 @@
   "homepage": "https://github.com/nahiyan/onwebed#readme",
   "description": "A web template system, designed for crafting static sites.",
   "scripts": {
-    "build:all:dev": "cd modules/compiler && yarn build:dev && cd .. && cd utilities && yarn build:dev && cd ../.. && node build-utils/clear-editor-backend-resources.js && cd modules/server && yarn build:dev && cd ../../ && yarn build:dev",
-    "build:dev": "npx spago bundle-app -t ./bin/index.js && node build-utils/insert-shebash.js",
-    "watch:dev": "npx spago build --watch"
+    "build:all:dev": "cd modules/compiler && yarn build && cd .. && cd utilities && yarn build && cd ../.. && node build-utils/clear-editor-backend-resources.js && cd modules/server && yarn build:dev && cd ../../ && yarn build",
+    "build:all:prod": "cd modules/compiler && yarn build && cd .. && cd utilities && yarn build && cd ../.. && node build-utils/clear-editor-backend-resources.js && cd modules/server && yarn build:prod && cd ../../ && yarn build",
+    "build": "npx spago bundle-app -t ./bin/index.js && node build-utils/insert-shebash.js",
+    "watch": "npx spago build --watch"
   },
   "devDependencies": {
     "elm-hot": "^1.1.6",

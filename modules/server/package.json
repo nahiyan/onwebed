@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "watch:dev": "npx webpack build --watch --mode development",
-    "build:dev": "npx webpack build --mode development"
+    "build:dev": "npx webpack build --mode development",
+    "watch:prod": "npx webpack build --watch --mode production",
+    "build:prod": "npx webpack build --mode production"
   },
   "dependencies": {
     "body-parser": "^1.19.0",

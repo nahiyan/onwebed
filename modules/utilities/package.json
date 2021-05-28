@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:dev": "npx spago bundle-module -t ../build/utilities.js",
-    "watch:dev": "npx spago build --watch",
+    "build": "npx spago bundle-module -t ../build/utilities.js",
+    "watch": "npx spago build --watch",
     "test": "npx spago test --watch"
   },
   "author": "Nahiyan Alamgir <nahiyan.alamgir@live.com> (http://github.com/hedronium)",
